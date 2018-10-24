@@ -1,7 +1,11 @@
+/// HC-SR04 Header Interface. Reveals all needed information
+/// to operate an instance of an HC-SR04 sensor on the Arduino.
+
 #ifndef __HCSR04_H__
 #define __HCSR04_H__
 #include "Arduino.h"
 
+/// Enumeration Defintion. For Units of Measurement.
 enum ReadOperation
 {
 	raw,
@@ -9,6 +13,7 @@ enum ReadOperation
 	centimeters
 };
 
+/// Class declaration for the HC-SR04 sensor.
 class HCSR04 {
 	private:
 		int TriggerPin;
