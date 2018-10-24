@@ -11,7 +11,7 @@ double distance;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-	sensor = HCSR04(50, 53, inches, 0);
+	sensor = HCSR04(50, 53, inches, 250);
 	Serial.begin(9600);
 	Serial.println("Testing HC-SR04 Sensor:");
 }
