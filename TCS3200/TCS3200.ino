@@ -10,7 +10,7 @@ TCS3200 colorSenor;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-	colorSenor = TCS3200(47, 45, 43, 41, 39);
+	colorSenor = TCS3200(47, 45, 43, 41, 39, 33);
 	Serial.begin(9600);
 	Serial.println("Testing TCS3200 Color Sensor:");
 }

@@ -10,15 +10,26 @@ enum pdType {
 	clear = 3
 };
 
-typedef struct PhotoDiode {
+struct PhotoDiode {
 	int s2pin;
 	int s3pin;
-} PhotoDiode;
+};
+
+template <typename T>
+struct Data {
+	T red;
+	T green;
+	T blue;
+	T clear;
+};
 
 class TCS3200 {
 	private: 
 		int SPins[4];
 		int OutputPin;
+		int LEDPin;
+		int sampleSize = 10;
+		bool enableLED;
 
 		PhotoDiode pinSettings[4] = {
 			{ LOW, LOW }, //red
@@ -27,26 +38,34 @@ class TCS3200 {
 			{ HIGH,LOW }, //clear
 		};
 
-		int redValue = 0;
-		int greenValue = 0;
-		int blueValue = 0;
+		Data<float> rawData;
+		Data<int> colorData;
 
-		void scanColor(pdType, int*);
+		Data<float> _darkcal;
+		Data<float> _whitecal;
+
+		void scanColor(pdType, float*);
+		void calibrateBlack();
+		void calibrateWhite();
 
 	protected:
+		void initalize();
 		void setPins();
-		void scanRed();
-		void scanGreen();
-		void scanBlue();
-		//void scanClear();
+		void scanRaw();
+		void scanRaw(Data<float>);
+
+		template <typename T>
+		void clearData(Data<T>);
 
 	public:
 		TCS3200();
 		TCS3200(int*, int);
 		TCS3200(int, int, int, int, int);
+		TCS3200(int, int, int, int, int, int);
 		void scan();
 		//String toString();
-		void printResults();
+		void printResults(int);
+		void calibration();
 };
 
 #endif
