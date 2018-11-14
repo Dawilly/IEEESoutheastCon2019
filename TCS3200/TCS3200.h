@@ -47,23 +47,24 @@ class TCS3200 {
 		void scanColor(pdType, float*);
 		void calibrateBlack();
 		void calibrateWhite();
+		int calculateRGB(float, float, float);
+		void printRaw(Data<float>);
 
 	protected:
 		void initalize();
 		void setPins();
 		void scanRaw();
 		void scanRaw(Data<float>);
+		void convertRaw2RGB(Data<float>);
 
 		template <typename T>
 		void clearData(Data<T>);
 
 	public:
-		TCS3200();
 		TCS3200(int*, int);
 		TCS3200(int, int, int, int, int);
 		TCS3200(int, int, int, int, int, int);
 		void scan();
-		//String toString();
 		void printResults(int);
 		void calibration();
 };
