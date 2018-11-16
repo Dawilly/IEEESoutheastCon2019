@@ -76,9 +76,19 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="logger.c" />
+    <ClCompile Include="message.c" />
+    <ClCompile Include="queue.c" />
+    <ClCompile Include="sll.c" />
+    <ClCompile Include="TestUnit.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="logger.h" />
+    <ClInclude Include="message.h" />
+    <ClInclude Include="queue.h" />
+    <ClInclude Include="sll.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
