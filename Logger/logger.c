@@ -42,6 +42,5 @@ void* bootstrapper(void* ptr) {
 void addMessage(Logger* logger, char* str, messageType type) {
 	message* msg = newMessage(str, type);
 	enqueue(logger->messageList, msg);
-	fprintf(stdout, "Added Message\n");
 	return;
 }
