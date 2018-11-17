@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef __MESSAGE_INCLUDED__
 #define __MESSAGE_INCLUDED__

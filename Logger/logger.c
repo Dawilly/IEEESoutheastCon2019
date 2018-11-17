@@ -11,32 +11,37 @@ typedef struct _logger {
 	void (*display) (FILE *, void *);
 } Logger;
 
-void bootstrapper(Logger*);
+void* bootstrapper(void*);
 
 Logger* createLogger(FILE* fp) {
 	Logger* newLogger = malloc(sizeof(Logger));
 	newLogger->fp = fp;
-	newLogger->messageList = newQueue(displayMessage);
+	newLogger->messageList = newQueue(NULL);
+	newLogger->display = displayMessage;
+	return newLogger;
 }
 
 int runLogger(Logger* logger) {
-	logger->threadState = pthread_create(&logger->thread, NULL, bootstrapper, logger);
+	logger->threadState = pthread_create(&logger->thread, NULL, bootstrapper, (void*) logger);
 	pthread_detach(logger->thread);
 	return 0;
 }
 
-void bootstrapper(Logger* logger) {
+void* bootstrapper(void* ptr) {
+	Logger* logger = (Logger*) ptr;
 	int running = 1;
 	while (running) {
 		if (sizeQueue(logger->messageList)) {
 			message* msgToPrint = dequeue(logger->messageList);
-			logger->display(msgToPrint, logger->fp);
+			logger->display(logger->fp, (void*)msgToPrint);
 		}
 	}
+	return 0;
 }
 
-void addMsg(Logger* logger, char* str, messageType type) {
+void addMessage(Logger* logger, char* str, messageType type) {
 	message* msg = newMessage(str, type);
 	enqueue(logger->messageList, msg);
+	fprintf(stdout, "Added Message\n");
 	return;
 }

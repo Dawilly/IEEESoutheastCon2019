@@ -16,7 +16,7 @@ message *newMessage(char* v, messageType type) {
 
 void displayMessage(FILE* fp, void* value) {
 	message* msg = value;
-	fprintf(fp, msg->value);
+	fprintf(fp, "%s", msg->value);
 }
 
 void freeMessage(message* msg) {

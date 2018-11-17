@@ -16,7 +16,7 @@ typedef struct SLL {
 	sllnode *tail;
 	int size;
 	void(*display)(FILE *, void *);
-};
+} sll;
 
 //newSLL(void*) - Creates a new SLL data structure, with a generic display function (Accessed via void pointer)
 //Parameters: (void*)d - Pointer to generic display function
@@ -61,7 +61,7 @@ void insertSLL(sll *items, int index, void *value) {
 			}
 			newNode->value = NULL;
 			newNode->next = NULL;
-			items->tail->next = newNode;
+			items->tail->next = (void*)newNode;
 			items->tail = newNode;
 			if (sizeSLL(items) == 0) {
 				items->head = newNode;
@@ -81,7 +81,7 @@ void insertSLL(sll *items, int index, void *value) {
 	//Find the appropriate position
 	//Front
 	if (index == 0) {
-		newNode->next = items->head;
+		newNode->next = (void*)items->head;
 		items->head = newNode;
 		if (sizeSLL(items) == 0) {
 			items->tail = newNode;
@@ -90,7 +90,7 @@ void insertSLL(sll *items, int index, void *value) {
 	}
 	else if (index == sizeSLL(items)) {
 		newNode->next = NULL;
-		items->tail->next = newNode;
+		items->tail->next = (void*)newNode;
 		items->tail = newNode;
 		//Middle
 	}
@@ -99,12 +99,12 @@ void insertSLL(sll *items, int index, void *value) {
 		while (traverse != NULL) {
 			if ((index - 1) == pos) {
 				newNode->next = traverse->next;
-				traverse->next = newNode;
+				traverse->next = (void*)newNode;
 				items->size++;
 				return;
 			}
 			pos++;
-			traverse = traverse->next;
+			traverse = (void*)traverse->next;
 		}
 
 		//Error checking
@@ -143,7 +143,7 @@ void *removeSLL(sll *items, int index) {
 	traverse = items->head;
 	//Front
 	if (index == 0) {
-		items->head = traverse->next;
+		items->head = (void*) traverse->next;
 		dumpedvalue = traverse->value;
 		free(traverse);
 		//Back
@@ -151,7 +151,7 @@ void *removeSLL(sll *items, int index) {
 	else if (index == (sizeSLL(items) - 1)) {
 		while (traverse != items->tail) {
 			stepback = traverse;
-			traverse = traverse->next;
+			traverse = (void*)traverse->next;
 		}
 		stepback->next = NULL;
 		items->tail = stepback;
@@ -169,7 +169,7 @@ void *removeSLL(sll *items, int index) {
 				return dumpedvalue;
 			}
 			stepback = traverse;
-			traverse = traverse->next;
+			traverse = (void*)traverse->next;
 			pos++;
 		}
 
@@ -206,7 +206,7 @@ void unionSLL(sll *recipient, sll *donor) {
 		recipient->size = recipient->size + donor->size;
 	}
 	else {
-		recipient->tail->next = donor->head;
+		recipient->tail->next = (void*)donor->head;
 		recipient->tail = donor->tail;
 		recipient->size = recipient->size + donor->size;
 	}
@@ -244,7 +244,7 @@ void displaySLL(FILE * fp, sll *items) {
 			fprintf(fp, ",");
 		}
 
-		traverse = traverse->next;
+		traverse = (void*)traverse->next;
 	}
 	fprintf(fp, "]");
 	return;
@@ -271,7 +271,7 @@ void* getSLL(sll *items, int index) {
 	}
 
 	for (i = 0; i < index; i++) {
-		traverse = traverse->next;
+		traverse = (void*)traverse->next;
 	}
 
 	pulledvalue = traverse->value;

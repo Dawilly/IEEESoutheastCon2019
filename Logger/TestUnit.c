@@ -5,20 +5,23 @@ void addFileContent(FILE*, Logger*);
 
 int main() {
 	FILE* fp;
+	FILE* writer = fopen("test.txt", "w");
 	Logger* logger;
 	int status;
 	int running = 1;
 	char cmd;
 	char str[50];
 
-	printf("Testing logger...");
-	logger = createLogger(stdin);
-	printf("Logger created. Starting thread.");
+	printf("Testing logger...\n");
+	logger = createLogger(writer);
+	printf("Logger created. Starting thread.\n");
 	status = runLogger(logger);
-	printf("Detach!");
+	printf("Detach!\n");
 
 	while (running) {
-		fscanf(stdin, "%c", &cmd);
+		fscanf(stdin, "%s", str);
+
+		cmd = str[0];
 
 		switch (cmd) {
 			case 'o':
@@ -34,6 +37,7 @@ int main() {
 				fprintf(stdout, "Done!\n");
 				break;
 			case 'a':
+				fprintf(stdout, "Input message : ");
 				fscanf(stdin, "%s", &str);
 				addMessage(logger, str, Info);
 				break;
