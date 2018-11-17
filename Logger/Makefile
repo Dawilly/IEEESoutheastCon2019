@@ -1,14 +1,14 @@
 OBJS = logger.o message.o queue.o sll.o TestUnit.o
-OPTS = -Wall -Wextra -g -std=c99
+OPTS = -Wall -Wextra -g -std=c11 -lpthread
 
 logger : $(OBJS) 
 	gcc $(OPTS) $(OBJS) -o logger
 
 testunit.o: TestUnit.c logger.h
-	gcc $(OPTS) -c TestUnit.c
+	gcc $(OPTS) -c TestUnit.c 
 	
 logger.o : logger.c logger.h queue.h sll.h message.h
-	gcc $(OPTS) -c logger.c logger.h
+	gcc $(OPTS) -c logger.c logger.h 
 	
 queue.o : queue.c queue.h sll.h
 	gcc $(OPTS) -c queue.c queue.h
