@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <string.h>
 
 #ifndef __MESSAGE_INCLUDED__
 #define __MESSAGE_INCLUDED__
