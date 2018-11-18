@@ -1,7 +1,12 @@
 
 #ifndef __TCS3200_H__
 #define __TCS3200_H__
+
+#ifdef PIMODE
+#include <wiringPi.h>
+#else
 #include "Arduino.h"
+#endif
 
 enum pdType {
 	red = 0,

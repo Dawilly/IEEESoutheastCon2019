@@ -66,7 +66,7 @@ void TCS3200::printResults(int mode = 0) {
 
 void TCS3200::calibration() {
 	#if DEBUG
-  bool waitDark = true;
+	bool waitDark = true;
 	Serial.println("Set up calibration for black. Press enter when ready.");
 	while (waitDark) {
 		if (Serial.available() > 0) {
@@ -77,7 +77,6 @@ void TCS3200::calibration() {
 		}
 		Serial.flush();
 	}
- 
 	#endif
 	calibrateBlack();
 	
