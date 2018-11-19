@@ -75,9 +75,15 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="arduinoPins.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pinInterface.c" />
+    <ClCompile Include="wiringPiPins.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="arduinoPins.h" />
+    <ClInclude Include="pinInterface.h" />
+    <ClInclude Include="wiringPiPins.h" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
