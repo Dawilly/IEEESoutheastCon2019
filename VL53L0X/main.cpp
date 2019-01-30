@@ -1,6 +1,8 @@
-#include <tof.h>
+#include "tof.h"
 #include <wiringPi.h>
 #include <stdio.h>
+#include <unistd.h>
+
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 // we have to use BCM numbering when initializing with wiringPiSetupSys
