@@ -497,7 +497,6 @@ void VL53L0X::initGPIO() {
 
 		std::lock_guard<std::mutex> guard(this->fileAccessMutex);
 
-		// Ensure that the GPIO pin is exported
 		std::ofstream file;
 		file.open("/sys/class/gpio/export", std::ofstream::out);
 		if (!file.is_open() || !file.good()) {
@@ -507,10 +506,6 @@ void VL53L0X::initGPIO() {
 		file << this->xshutGPIOPin;
 		file.close();
 
-		// Sleep for 100ms - exporting GPIO pin on RPi might take non-zero time, as per issue #7 (https://github.com/mjbogusz/vl53l0x-linux/issues/7)
-		usleep(100000);
-
-		// Set the GPIO direction to output
 		file.open(gpioDirectionFilename.c_str(), std::ofstream::out);
 		if (!file.is_open() || !file.good()) {
 			file.close();

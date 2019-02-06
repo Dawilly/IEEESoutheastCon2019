@@ -11,7 +11,8 @@ typedef enum messageType {
 	Info,
 	Warning,
 	Error,
-	Fatal
+	Fatal,
+	None
 } messageType;
 
 typedef struct _message message;
