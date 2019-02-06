@@ -44,20 +44,6 @@ void TCS3200::scan() {
 	convertRaw2RGB(rawData);
 }
 
-#ifdef PIBUILD
-void TCS3200::printResults(int mode = 0) {
-	cout << "Red = " << colorData.red;
-	cout << " Green = " << colorData.green;
-	cout << " Blue = " << colorDate.blue;
-	if (mode > 0) {
-		cout << "(Raw : Red = " << rawData.red;
-		cout << " Green = " << rawData.green;
-		cout << " Blue " << rawData.blue;
-		cout << " )";
-	}
-	cout << endl;
-}
-#else
 void TCS3200::printResults(int mode = 0) {
 	Serial.print("Red = ");
 	Serial.print(colorData.red);
@@ -77,16 +63,11 @@ void TCS3200::printResults(int mode = 0) {
 	Serial.print("\n");
 	return;
 }
-#endif
 
 void TCS3200::calibration() {
 	#if DEBUG
-	bool waitDark = true;
-	#ifdef PIBUILD
-	cout << "Set up calibration for black. Press enter when ready." << endl;
-	#else
+  bool waitDark = true;
 	Serial.println("Set up calibration for black. Press enter when ready.");
-	#endif
 	while (waitDark) {
 		if (Serial.available() > 0) {
 			 waitDark = false;
@@ -96,16 +77,13 @@ void TCS3200::calibration() {
 		}
 		Serial.flush();
 	}
+ 
 	#endif
 	calibrateBlack();
 	
 	#if DEBUG
 	bool waitLight = true;
-	#ifdef PIBUILD
-	cout << "Set up calibration for black. Press enter when ready." << endl;
-	#else
 	Serial.println("Set up calibration for white. Press enter when ready.");
-	#endif
 	while (waitLight) {
 		if (Serial.available() > 0) {
 			waitLight = false;
@@ -167,6 +145,7 @@ void TCS3200::convertRaw2RGB(Data<float> data) {
 }
 
 // Private 
+
 int TCS3200::calculateRGB(float rawVal, float darkVal, float whiteVal) {
 	int x;
 	x = (rawVal - darkVal) * 255;
@@ -217,14 +196,6 @@ void TCS3200::calibrateWhite() {
 	_whitecal = whitecal;
 }
 
-#ifdef PIBUILD
-void TCS3200::printRaw(Data<float> raw) {
-	cout << "Red = " << raw.red;
-	cout << " Green = " << raw.green;
-	cout << " Blue = " << raw.blue;
-	cout << endl;
-}
-#else
 void TCS3200::printRaw(Data<float> raw) {
 	Serial.print("Red = ");
 	Serial.print(raw.red);
@@ -234,4 +205,3 @@ void TCS3200::printRaw(Data<float> raw) {
 	Serial.print(raw.blue);
 	Serial.print("\n");
 }
-#endif
