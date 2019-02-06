@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.271
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VL53Tester", "VL53Tester\VL53Tester.vcxproj", "{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM = Debug|ARM
+		Debug|ARM64 = Debug|ARM64
+		Release|ARM = Release|ARM
+		Release|ARM64 = Release|ARM64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Debug|ARM.ActiveCfg = Debug|ARM
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Debug|ARM.Build.0 = Debug|ARM
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Debug|ARM64.Build.0 = Debug|ARM64
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Release|ARM.ActiveCfg = Release|ARM
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Release|ARM.Build.0 = Release|ARM
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Release|ARM64.ActiveCfg = Release|ARM64
+		{92FF4CD0-55CE-4772-9D7F-B8FCAB04875B}.Release|ARM64.Build.0 = Release|ARM64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F66211F2-B3DD-431D-B861-872DC25E7555}
+	EndGlobalSection
+EndGlobal
