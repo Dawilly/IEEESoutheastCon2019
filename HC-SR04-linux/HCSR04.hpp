@@ -6,8 +6,11 @@ class HCSR04 {
 	private:
 		int triggerPin;
 		int echoPin;
-		double lastReading;
+		long lastReading;
+
 		void getMeasurement();
+		void setUp();
+		long pulseIn();
 
 	public:
 		HCSR04();
