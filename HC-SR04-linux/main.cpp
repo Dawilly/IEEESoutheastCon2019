@@ -1,4 +1,5 @@
 #include <wiringPi.h>
+#include "HCSR04.hpp"
 
 // LED Pin - wiringPi pin 0 is BCM_GPIO 17.
 // we have to use BCM numbering when initializing with wiringPiSetupSys
@@ -9,16 +10,16 @@
 
 int main(void)
 {
-	wiringPiSetupSys();
+	////wiringPiSetupSys();
 
-	pinMode(LED, OUTPUT);
+	//pinMode(LED, OUTPUT);
 
-	while (true)
-	{
-		digitalWrite(LED, HIGH);  // On
-		delay(500); // ms
-		digitalWrite(LED, LOW);	  // Off
-		delay(500);
-	}
+	//while (true)
+	//{
+	//	digitalWrite(LED, HIGH);  // On
+	//	delay(500); // ms
+	//	digitalWrite(LED, LOW);	  // Off
+	//	delay(500);
+	//}
 	return 0;
 }
