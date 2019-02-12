@@ -6,16 +6,18 @@ class HCSR04 {
 	private:
 		int triggerPin;
 		int echoPin;
-		long lastReading;
+		double lastReading;
+		long now;
+		volatile long start;
+		volatile long end;
 
-		void getMeasurement();
+		void getMeasurement(int);
 		void setUp();
-		long pulseIn();
+		void pulseLength();
 
 	public:
 		HCSR04();
 		HCSR04(int, int);
-		void Measure();
 		double MeasureCm();
 		double MeasureMm();
 		double MeasureInches();

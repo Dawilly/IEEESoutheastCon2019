@@ -20,6 +20,15 @@ message *newMessage(char* v, messageType type) {
 	return msg;
 }
 
+message *newDataMessage(char* v, int param, int count) {
+	message* msg = malloc(sizeof(message));
+	msg->timestamp = time(0);
+	msg->value = v;
+	msg->count = count;
+	msg->param = param;
+	return msg;
+}
+
 void displayMessage(FILE* fp, void* value) {
 	message* msg = value;
 	char* readableTime = ctime(&msg->timestamp);
