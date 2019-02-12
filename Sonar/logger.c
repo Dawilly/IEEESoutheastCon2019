@@ -46,8 +46,8 @@ void addMessage(Logger* logger, char* str, messageType type) {
 }
 
 void addDataMessage(Logger* logger, int param, int count, char* str) {
-	message* msg = newMessage(str, 0);
-	msg->param = param;
-	msg->count = count;
+	message* msg = newDataMessage(str, param, count);
+	//msg->param = param;
+	//msg->count = count;
 	enqueue(logger->messageList, msg);
 }

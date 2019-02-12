@@ -1,7 +1,6 @@
 #include "HCSR04.hpp"
 #include <wiringPi.h>
 #include <chrono>
-#include <cmath>
 
 HCSR04::HCSR04() {
 	triggerPin = 27;
@@ -15,12 +14,11 @@ HCSR04::HCSR04(int triggerPin, int echoPin) {
 	setUp();
 }
 
-void HCSR04::Measure() {
-	return;
-}
-
 double HCSR04::MeasureCm() {
-	return 0.0;
+	double results;
+	getMeasurement(30000);
+	results = 100*((lastReading/1000000.0)*340.29)/2;
+	return results;
 }
 
 double HCSR04::MeasureMm() {
@@ -35,22 +33,27 @@ double HCSR04::MeasureRaw() {
 	return 0.0;
 }
 
-void HCSR04::getMeasurement() {
+void HCSR04::getMeasurement(int timeout) {
 	using namespace std;
-
+	
 	//Ensure triggerPin is at 0
-	digitalWrite(triggerPin, false);
+	digitalWrite(triggerPin, LOW);
 	//Wait 2 microseconds
 	delayMicroseconds(2);
 	//Output 1 to triggerPin
-	digitalWrite(triggerPin, true);
+	digitalWrite(triggerPin, HIGH);
 	//Wait 10 microseconds
 	delayMicroseconds(10);
 	//Output 0 to triggerPin
-	digitalWrite(triggerPin, false);
-
-	//Measure the pulse of the echo
-	lastReading = pulseIn() * 17150;
+	digitalWrite(triggerPin, LOW);
+	
+	now = micros();
+	
+	while(digitalRead(echoPin) == LOW && (micros() - now < timeout)) {
+		pulseLength();
+	}
+	
+	lastReading = end - start;
 	
 	return;
 }
@@ -63,27 +66,8 @@ void HCSR04::setUp() {
 }
 
 //Get the Pulse Durtaion
-long HCSR04::pulseIn() {
-	using namespace std::chrono;
-
-	//Clock the beginning time
-	auto begin = high_resolution_clock::now();
-	auto end = high_resolution_clock::now();
-
-	//while echo is low
-	while (digitalRead(echoPin) == 0) {
-		//Clock the beginning time
-		begin = high_resolution_clock::now();
-	}
-	//While echo is high
-	while (digitalRead(echoPin) == 1) {
-		//Clock the end time
-		end = high_resolution_clock::now();
-	}
-	//Duration = end - begin
-	auto duration = end - begin;
-	//Convert to microseconds
-	auto conv = duration.time_since_epoch();
-	//Return
-	return conv.count();
+void HCSR04::pulseLength() {
+	start = micros();
+	while (digitalRead(echoPin) == HIGH);
+	end = micros();
 }
