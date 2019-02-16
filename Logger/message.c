@@ -43,5 +43,5 @@ char* convertMessageType(messageType type) {
 		case Fatal:
 			return "Fatal";
 	}
-	return "Unknown";
+	return "";
 }
