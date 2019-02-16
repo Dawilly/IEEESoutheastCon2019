@@ -1,0 +1,24 @@
+Test: Debris Depositing Doors
+
+Experimenter: Trent Whalen
+
+When: Feb. 6, 2019
+
+Goal: Control debris storage compartment door with a servo motor. The door
+    should not 	open when depositing blocks or balls. When opening the
+    compartment door, all blocks and balls should exit the compartment.
+
+Results: The compartment doors did not perceivably move when dropping up to any 
+    combination of two blocks and one ball. When opening the compartment door,
+    all blocks and balls exited the compartment.
+
+    The order blocks and balls were dropped had no influence on the doors
+    ability to remain closed. Dropping the ball and then blocks into the storage
+    compartment made the debris exit furthest from the compartment, but any
+    order of placement allowed all debris to exit.
+
+    Nearly always after opening a door, a block would obstruct the door from
+    reclosing. This will not be an issue for raised storage compartments but
+    must be addressed for ground-level compartments.
+
+Code: Refer to 'gate.ino'.
