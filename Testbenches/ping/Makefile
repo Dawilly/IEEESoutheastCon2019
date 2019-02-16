@@ -1,5 +1,5 @@
 all:
-	gcc -Wextra ping.c -o ping
+	gcc -Wall -Wextra ping.c -o ping
 
 test: all
 	./ping
