@@ -13,11 +13,11 @@ typedef struct _logger {
 
 void* bootstrapper(void*);
 
-Logger* createLogger(FILE* fp) {
+Logger* createLogger(FILE* fp, int type) {
 	Logger* newLogger = malloc(sizeof(Logger));
 	newLogger->fp = fp;
 	newLogger->messageList = newQueue(NULL);
-	newLogger->display = displayMessage;
+	newLogger->display = (type == 0) ? displayMessageDataColl : displayMessage;
 	return newLogger;
 }
 
@@ -43,4 +43,11 @@ void addMessage(Logger* logger, char* str, messageType type) {
 	message* msg = newMessage(str, type);
 	enqueue(logger->messageList, msg);
 	return;
+}
+
+void addDataMessage(Logger* logger, int param, int count, char* str) {
+	message* msg = newMessage(str, 0);
+	msg->param = param;
+	msg->count = count;
+	enqueue(logger->messageList, msg);
 }
