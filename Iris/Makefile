@@ -1,20 +1,25 @@
-OBJS = logger.o VL53Tester.o VL53L0X.o I2Cdev.o
+OBJS = logger.o SensorManager.o VL53L0X.o I2Cdev.o iris.o
 OPTS = -Wall -Wextra -g -std=c++11 -pthread
+VL53 = ./VL53L0X
+LOGR = ./Logger
 
-irtester : $(OBJS) 
-	g++ $(OPTS) $(OBJS) -o irtester
+Iris : $(OBJS) 
+	g++ $(OPTS) $(OBJS) -o Iris
 
-VL53Tester.o: VL53Tester.cpp logger.hpp VL53L0X.hpp I2Cdev.hpp
-	g++ $(OPTS) -c VL53Tester.cpp 
+iris.o: iris.cpp SensorManager.hpp $(VL53)/VL53L0X.hpp
+	g++ $(OPTS) -c iris.cpp
 	
-logger.o : logger.cpp logger.hpp message.hpp
-	g++ $(OPTS) -c logger.cpp logger.hpp 
-
-VL53L0X.o : VL53L0X.cpp VL53L0X.hpp VL53L0X_defines.hpp I2Cdev.hpp
-	g++ $(OPTS) -c VL53L0X.cpp VL53L0X.hpp
+SensorManager.o: SensorManager.cpp SensorManager.hpp $(VL53)/VL53L0X.hpp $(VL53)/I2Cdev.hpp
+	g++ $(OPTS) -c SensorManager.cpp 
 	
-I2Cdev.o : I2Cdev.cpp I2Cdev.hpp
-	g++ $(OPTS) -c I2Cdev.cpp I2Cdev.hpp
+logger.o : $(LGR)/logger.cpp $(LGR)/logger.hpp $(LGR)/message.hpp
+	g++ $(OPTS) -c $(LGR)/logger.cpp $(LGR)/logger.hpp 
+
+VL53L0X.o : $(VL53)/VL53L0X.cpp $(VL53)/VL53L0X.hpp $(VL53)/VL53L0X_defines.hpp $(VL53)/I2Cdev.hpp
+	g++ $(OPTS) -c $(VL53)/VL53L0X.cpp $(VL53)/VL53L0X.hpp
+	
+I2Cdev.o : $(VL53)/I2Cdev.cpp $(VL53)/I2Cdev.hpp
+	g++ $(OPTS) -c $(VL53)/I2Cdev.cpp $(VL53)/I2Cdev.hpp
 	
 clean :
-	rm -f $(OBJS) irtester
+	rm -f $(OBJS) Iris
