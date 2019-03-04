@@ -7,24 +7,26 @@
 #define __SENSOR_MANAGER_INCLUDED__
 class SensorManager {
 	private:
+		int size;
 		int selector_A0;
 		int selector_A1;
 		int selector_A2;
 		int currentSelector;
 		VL53L0X** sensors;
 		Logger* logger;
+		int* xshutPins;
 		
-		void BaseSetup(VL53L0X*);
+		bool BaseSetup(VL53L0X*);
 		void LongRangeSetup(VL53L0X*);
 		void HighSpeedSetup(VL53L0X*);
 		void HighAccuracySetup(VL53L0X*);
 		void EmitSelector(int);
 		
 	public:
-		SensorManager(std::string, std::string);
-		void SetUp(uint8_t, int, int, int);
+		SensorManager(std::string, std::string, int);
+		void SetUp(int, int, int, int, int*);
 		bool Initialize();
-		int SetSelector(int);
+		void SetSelector(int);
 		int GetSelector();
 		uint16_t ReadRange();
 		uint16_t ReadRange(uint8_t);
