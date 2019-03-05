@@ -7,6 +7,7 @@ using namespace std;
 SensorManager::SensorManager(string filename, string limiter, int size) {
 	this->size = size;
 	sensors = new VL53L0X*[size];
+	mux = new TCAMux;
 	logger = new Logger(filename, limiter);
 	xshutPins = new int[size];
 }
@@ -14,6 +15,8 @@ SensorManager::SensorManager(string filename, string limiter, int size) {
 void SensorManager::SetUp(int value, int A0, int A1, int A2, int* xPins) {
 	int i;
 	int bit;
+
+	mux->Initialize();
 	
 	selector_A0 = A0;
 	selector_A1 = A1;
@@ -58,7 +61,7 @@ bool SensorManager::BaseSetup(VL53L0X* unit) {
 		unit->setTimeout(200);
 		unit->setMeasurementTimingBudget(20000);
 	} catch (const exception &error) {
-		cerr << "Error initializing sensor #" << n << " with reason:" << endl << error.what() << endl;
+		cerr << "Error initializing sensor with reason:" << endl << error.what() << endl;
 		//Log Error
 		return false;
 	}
