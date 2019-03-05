@@ -1,7 +1,8 @@
-OBJS = logger.o SensorManager.o VL53L0X.o I2Cdev.o iris.o
+OBJS = logger.o SensorManager.o VL53L0X.o I2Cdev.o iris.o TCAMux.o
 OPTS = -Wall -Wextra -g -std=c++11 -pthread -lwiringPi
 VL53 = ./VL53L0X
 LOGR = ./Logger
+TCAM = ./TCA9548A
 
 Iris : $(OBJS) 
 	g++ $(OPTS) $(OBJS) -o Iris
@@ -9,7 +10,7 @@ Iris : $(OBJS)
 iris.o: iris.cpp SensorManager.hpp $(VL53)/VL53L0X.hpp
 	g++ $(OPTS) -c iris.cpp
 	
-SensorManager.o: SensorManager.cpp SensorManager.hpp $(VL53)/VL53L0X.hpp $(VL53)/I2Cdev.hpp
+SensorManager.o: SensorManager.cpp SensorManager.hpp $(VL53)/VL53L0X.hpp $(VL53)/I2Cdev.hpp $(TCAM)/TCAMux.h
 	g++ $(OPTS) -c SensorManager.cpp 
 	
 logger.o : $(LOGR)/logger.cpp $(LOGR)/logger.hpp $(LOGR)/message.hpp
@@ -20,6 +21,9 @@ VL53L0X.o : $(VL53)/VL53L0X.cpp $(VL53)/VL53L0X.hpp $(VL53)/VL53L0X_defines.hpp 
 	
 I2Cdev.o : $(VL53)/I2Cdev.cpp $(VL53)/I2Cdev.hpp
 	g++ $(OPTS) -c $(VL53)/I2Cdev.cpp $(VL53)/I2Cdev.hpp
+
+TCAMux.o : $(TCAM)/TCAMux.cpp $(TCAM)/TCAMux.h
+	g++ $(OPTS) -c $(TCAM)/TCAMux.cpp $(TCAM)/TCAMux.h
 	
 clean :
 	rm -f $(OBJS) Iris

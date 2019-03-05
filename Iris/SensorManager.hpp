@@ -2,6 +2,7 @@
 #include <cstdint>
 #include "./VL53L0X/VL53L0X.hpp"
 #include "./Logger/logger.hpp"
+#include "./TCA9548A/TCAMux.h"
 
 #ifndef __SENSOR_MANAGER_INCLUDED__
 #define __SENSOR_MANAGER_INCLUDED__
@@ -13,6 +14,7 @@ class SensorManager {
 		int selector_A2;
 		int currentSelector;
 		VL53L0X** sensors;
+		TCAMux* mux;
 		Logger* logger;
 		int* xshutPins;
 		
