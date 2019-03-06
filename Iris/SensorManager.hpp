@@ -9,16 +9,12 @@
 class SensorManager {
 	private:
 		int size;
-		int selector_A0;
-		int selector_A1;
-		int selector_A2;
 		int currentSelector;
 		VL53L0X** sensors;
 		TCAMux* mux;
 		Logger* logger;
-		int* xshutPins;
 		
-		bool BaseSetup(VL53L0X*);
+		void BaseSetup(VL53L0X*);
 		void LongRangeSetup(VL53L0X*);
 		void HighSpeedSetup(VL53L0X*);
 		void HighAccuracySetup(VL53L0X*);
@@ -26,12 +22,12 @@ class SensorManager {
 		
 	public:
 		SensorManager(std::string, std::string, int);
-		void SetUp(int, int, int, int, int*);
-		bool Initialize();
+		void SetUp(int);
+		void Initialize();
 		void SetSelector(int);
 		int GetSelector();
 		uint16_t ReadRange();
-		uint16_t ReadRange(uint8_t);
+		uint16_t ReadRange(int);
 };
 
 #endif

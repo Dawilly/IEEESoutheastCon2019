@@ -8,10 +8,7 @@ using namespace std;
 
 int main(int argc, char** argv) {
 	int i;
-	int A[3] = { 27, 28, 29 };
-	int xShut[8] = { 22, 23, 0, 0, 0, 0, 0, 0 };
 
-	
 	//0000 0001
 	int sp = 0x01;
 	
@@ -19,12 +16,12 @@ int main(int argc, char** argv) {
 	
 	SensorManager eyes("a", "a", 8);
 	
-	eyes.SetUp(sp, A[0], A[1], A[2], xShut);
+	eyes.SetUp(sp);
 	eyes.Initialize();
 	eyes.SetSelector(0);
 	
 	while(1) {
-		for (i = 0; i < 8; i++) {
+		for (i = 0; i < 1; i++) {
 			eyes.SetSelector(i);
 			cout << "Sensor #" << i << ": " << eyes.ReadRange() << " mm " << endl;
 		}

@@ -6,7 +6,7 @@ class TCAMux {
 	private:
 		int status;
 		int activeInput;
-		char dataWrite;
+		char* dataWrite;
 	public:
 		TCAMux();
 		void Initialize();
