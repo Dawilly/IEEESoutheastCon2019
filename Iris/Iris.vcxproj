@@ -80,26 +80,60 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <IncludePath>C:\Users\Weil\Documents\Repos\IEEESoutheastCon2019\Iris;C:\Users\Weil\Documents\Repos\IEEESoutheastCon2019\Iris\Logger;C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\Common7\IDE\VC\Linux\include\wiringPi\2.32;$(IncludePath)</IncludePath>
+    <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
+    <ValidateArchitecture>true</ValidateArchitecture>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
+    <RemoteCppCompileToolExe>g++</RemoteCppCompileToolExe>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="iris.cpp" />
     <ClCompile Include="Logger\logger.cpp" />
     <ClCompile Include="SensorManager.cpp" />
-    <ClCompile Include="VL53L0X\I2Cdev.cpp" />
+    <ClCompile Include="TCA9548A\TCAMux.cpp" />
     <ClCompile Include="VL53L0X\VL53L0X.cpp" />
+    <ClCompile Include="VL53L0X\vl53l0x_api.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_api_calibration.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_api_core.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_api_ranging.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_api_strings.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_i2c_win_serial_comms.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_platform.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_platform_log.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_setup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
+    <None Include="VL53L0X\prototype.zip" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger\logger.hpp" />
     <ClInclude Include="Logger\message.hpp" />
     <ClInclude Include="SensorManager.hpp" />
-    <ClInclude Include="VL53L0X\I2Cdev.hpp" />
+    <ClInclude Include="TCA9548A\TCAMux.h" />
     <ClInclude Include="VL53L0X\VL53L0X.hpp" />
-    <ClInclude Include="VL53L0X\VL53L0X_defines.hpp" />
+    <ClInclude Include="VL53L0X\vl53l0x_api.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_api_calibration.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_api_core.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_api_ranging.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_api_strings.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_def.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_device.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_i2c_platform.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_interrupt_threshold_settings.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_platform.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_platform_log.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_setup.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_tuning.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_types.h" />
   </ItemGroup>
-  <ItemDefinitionGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <AdditionalOptions>
+      </AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>
