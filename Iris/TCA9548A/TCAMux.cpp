@@ -38,10 +38,25 @@ void TCAMux::Switch(int value) {
 	//mux->data_write[0] = 1 << inputNo;
 	dataWrite[0] = 1 << value;
 	//write(mux->muxStatus, mux->data_write, 1);
-	write(status, dataWrite, 1);
+	if (write(status, dataWrite, 1) < 0) {
+		cout << "Unable to switch pins." <<	endl;
+	}
 	activeInput = value;
 	cout << "Mux set to: " << activeInput << endl;
 	cout << "Status: " << status << endl;
 	cout << "Datawrite: " << dataWrite << endl;
 	return;
+}
+
+void TCAMux::scanI2CBus(char from_addr, char to_addr) {
+	char data = 0; // not used, just a ptr to feed to twi_writeTo()
+	for (char addr = from_addr; addr <= to_addr; addr++) {
+		//char rc = twi_writeTo(addr, &data, 0, 1, 0);
+		//write(fd, buf, len + 1)
+		if (rc == 0) {
+			cout << "Device Found at address: " << endl;
+			Serial.printl("device found at address ");
+			Serial.println(addr, DEC);
+		}
+	}
 }
