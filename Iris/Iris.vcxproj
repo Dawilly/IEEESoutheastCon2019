@@ -47,6 +47,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>Makefile</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -82,6 +83,10 @@
     <IncludePath>C:\Users\Weil\Documents\Repos\IEEESoutheastCon2019\Iris;C:\Users\Weil\Documents\Repos\IEEESoutheastCon2019\Iris\Logger;C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\Common7\IDE\VC\Linux\include\wiringPi\2.32;$(IncludePath)</IncludePath>
     <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
     <ValidateArchitecture>true</ValidateArchitecture>
+    <RemoteBuildCommandLine>cd $(RemoteRootDir)/$(ProjectName); make</RemoteBuildCommandLine>
+    <RemoteReBuildCommandLine>cd $(RemoteRootDir)/$(ProjectName); make all</RemoteReBuildCommandLine>
+    <RemoteCleanCommandLine>cd $(RemoteRootDir)/$(ProjectName); make clean</RemoteCleanCommandLine>
+    <RemoteBuildOutputs>Iris</RemoteBuildOutputs>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <RemoteCCompileToolExe>gcc</RemoteCCompileToolExe>
@@ -98,9 +103,7 @@
     <ClCompile Include="VL53L0X\vl53l0x_api_core.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_ranging.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_strings.c" />
-    <ClCompile Include="VL53L0X\vl53l0x_i2c_win_serial_comms.c" />
     <ClCompile Include="VL53L0X\vl53l0x_platform.c" />
-    <ClCompile Include="VL53L0X\vl53l0x_platform_log.c" />
     <ClCompile Include="VL53L0X\vl53l0x_setup.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -123,15 +126,13 @@
     <ClInclude Include="VL53L0X\vl53l0x_i2c_platform.h" />
     <ClInclude Include="VL53L0X\vl53l0x_interrupt_threshold_settings.h" />
     <ClInclude Include="VL53L0X\vl53l0x_platform.h" />
-    <ClInclude Include="VL53L0X\vl53l0x_platform_log.h" />
     <ClInclude Include="VL53L0X\vl53l0x_setup.h" />
     <ClInclude Include="VL53L0X\vl53l0x_tuning.h" />
     <ClInclude Include="VL53L0X\vl53l0x_types.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>-lwiringPi -pthread</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

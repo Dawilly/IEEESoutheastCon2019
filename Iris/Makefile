@@ -3,7 +3,7 @@ LOGR = ./Logger
 TCAM = ./TCA9548A
 
 OBJS = logger.o SensorManager.o VL53L0X.o iris.o TCAMux.o vl53l0x_api.o vl53l0x_platform.o vl53l0x_api_calibration.o vl53l0x_api_core.o vl53l0x_api_ranging.o vl53l0x_api_strings.o vl53l0x_setup.o
-OPTS = -Wall -std=c++11 -pthread -lwiringPi -W
+OPTS = -Wall -g -std=c++11 -pthread -lwiringPi -W
 DEPS = $(VL53)/vl53l0x_setup.h $(VL53)/vl53l0x_tuning.h $(VL53)/vl53l0x_types.h $(VL53)/vl53l0x_api_calibration.h $(VL53)/vl53l0x_api_core.h $(VL53)/vl53l0x_api_ranging.h $(VL53)/vl53l0x_api_strings.h $(VL53)/vl53l0x_def.h $(VL53)/vl53l0x_device.h $(VL53)/vl53l0x_i2c_platform.h $(VL53)/vl53l0x_interrupt_threshold_settings.h $(VL53)/vl53l0x_platform_log.h
 
 Iris : $(OBJS) 

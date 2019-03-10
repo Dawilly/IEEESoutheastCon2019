@@ -54,9 +54,11 @@ void setup()
         if (! twi_writeTo(addr, &data, 0, 1, 1)) {
            Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
            lox[t] = new Adafruit_VL53L0X();
+           delay(100);
            if (!lox[t]->begin()) {
              Serial.println(F("Failed to boot VL53L0X"));
-             while(1);
+             lox[t] = NULL;
+             continue;
            }
            measure[t] = new VL53L0X_RangingMeasurementData_t;
         }
@@ -79,7 +81,7 @@ void loop()
     Serial.print(": ");
     if (measure[i]->RangeStatus != 4) {  // phase failures have incorrect data
       Serial.print("Distance (mm): "); 
-      Serial.println((i == 1) ? (measure[i]->RangeMilliMeter + 30) : measure[i]->RangeMilliMeter);
+      Serial.println((i == 1) ? (measure[i]->RangeMilliMeter) : measure[i]->RangeMilliMeter);
     } else {
       Serial.println(" out of range ");
     }

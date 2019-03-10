@@ -9,9 +9,7 @@
     <ClCompile Include="SensorManager.cpp" />
     <ClCompile Include="TCA9548A\TCAMux.cpp" />
     <ClCompile Include="VL53L0X\vl53l0x_setup.cpp" />
-    <ClCompile Include="VL53L0X\vl53l0x_platform_log.c" />
     <ClCompile Include="VL53L0X\vl53l0x_platform.c" />
-    <ClCompile Include="VL53L0X\vl53l0x_i2c_win_serial_comms.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_strings.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_ranging.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_core.c" />
@@ -48,7 +46,6 @@
     <ClInclude Include="VL53L0X\vl53l0x_i2c_platform.h" />
     <ClInclude Include="VL53L0X\vl53l0x_interrupt_threshold_settings.h" />
     <ClInclude Include="VL53L0X\vl53l0x_platform.h" />
-    <ClInclude Include="VL53L0X\vl53l0x_platform_log.h" />
     <ClInclude Include="VL53L0X\vl53l0x_tuning.h" />
     <ClInclude Include="VL53L0X\vl53l0x_types.h" />
     <ClInclude Include="VL53L0X\vl53l0x_setup.h" />
