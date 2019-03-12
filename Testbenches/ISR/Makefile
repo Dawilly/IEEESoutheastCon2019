@@ -6,7 +6,7 @@ all:
 	g++ $(CPPFLAGS) $(GPIOFLAGS) isr.cpp -o $(EXE)
 
 test: all
-	./$(EXE)
+	sudo ./$(EXE)
 
 clean:
 	rm -f $(EXE)
