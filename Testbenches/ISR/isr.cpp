@@ -1,6 +1,4 @@
 #include <iostream>
-#include <chrono>
-#include <thread>
 #include <pigpio.h>
 
 #define PIN 4
@@ -24,5 +22,4 @@ int main(void) {
 void handle_interrupt(int gpio, int level, uint32_t tick) {
     cout << "Pin " << gpio << " caused interrupt of level " << level
          << " at time " << tick << endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(15));
 }
