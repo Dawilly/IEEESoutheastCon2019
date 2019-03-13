@@ -4,6 +4,7 @@
 #define __TCAMUX_INCLUDED__
 class TCAMux {
 	private:
+		int fd;
 		int status;
 		int activeInput;
 		char* dataWrite;

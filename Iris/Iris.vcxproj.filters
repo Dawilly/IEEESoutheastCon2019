@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="VL53L0X\I2Cdev.cpp">
+      <Filter>VL53L0X</Filter>
+    </ClCompile>
     <ClCompile Include="VL53L0X\VL53L0X.cpp">
       <Filter>VL53L0X</Filter>
     </ClCompile>
@@ -8,8 +11,17 @@
     <ClCompile Include="iris.cpp" />
     <ClCompile Include="SensorManager.cpp" />
     <ClCompile Include="TCA9548A\TCAMux.cpp" />
+    <ClCompile Include="VL53L0X\core\src\vl53l0x_api.cpp" />
+    <ClCompile Include="VL53L0X\core\src\vl53l0x_api_calibration.cpp" />
+    <ClCompile Include="VL53L0X\core\src\vl53l0x_api_core.cpp" />
+    <ClCompile Include="VL53L0X\core\src\vl53l0x_api_ranging.cpp" />
+    <ClCompile Include="VL53L0X\core\src\vl53l0x_api_strings.cpp" />
+    <ClCompile Include="VL53L0X\platform\src\vl53l0x_i2c_comms.cpp" />
+    <ClCompile Include="VL53L0X\platform\src\vl53l0x_platform.cpp" />
     <ClCompile Include="VL53L0X\vl53l0x_setup.cpp" />
+    <ClCompile Include="VL53L0X\vl53l0x_platform_log.c" />
     <ClCompile Include="VL53L0X\vl53l0x_platform.c" />
+    <ClCompile Include="VL53L0X\vl53l0x_i2c_win_serial_comms.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_strings.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_ranging.c" />
     <ClCompile Include="VL53L0X\vl53l0x_api_core.c" />
@@ -25,7 +37,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="VL53L0X\I2Cdev.hpp">
+      <Filter>VL53L0X</Filter>
+    </ClInclude>
     <ClInclude Include="VL53L0X\VL53L0X.hpp">
+      <Filter>VL53L0X</Filter>
+    </ClInclude>
+    <ClInclude Include="VL53L0X\VL53L0X_defines.hpp">
       <Filter>VL53L0X</Filter>
     </ClInclude>
     <ClInclude Include="Logger\logger.hpp">
@@ -46,6 +64,7 @@
     <ClInclude Include="VL53L0X\vl53l0x_i2c_platform.h" />
     <ClInclude Include="VL53L0X\vl53l0x_interrupt_threshold_settings.h" />
     <ClInclude Include="VL53L0X\vl53l0x_platform.h" />
+    <ClInclude Include="VL53L0X\vl53l0x_platform_log.h" />
     <ClInclude Include="VL53L0X\vl53l0x_tuning.h" />
     <ClInclude Include="VL53L0X\vl53l0x_types.h" />
     <ClInclude Include="VL53L0X\vl53l0x_setup.h" />

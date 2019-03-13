@@ -551,8 +551,10 @@ uint32_t VL53L0X_calc_timeout_mclks(VL53L0X_DEV Dev,
 
 	macro_period_ps = VL53L0X_calc_macro_period_ps(Dev, vcsel_period_pclks);
 	macro_period_ns = (macro_period_ps + 500) / 1000;
-	printf("macro period ns : %d\n", marco_period_ns);
-	if (marco_period_ns == 0) marco_period_ns = 1;
+	
+	// For some reason, this is causing macro_period_ns to be 0.
+	// Temp fix is applied to nullify division by zero.
+	if (macro_period_ns == 0) macro_period_ns = 1;
 
 	timeout_period_mclks =
 		(uint32_t) (((timeout_period_us * 1000)
