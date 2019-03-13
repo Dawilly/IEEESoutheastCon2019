@@ -2511,10 +2511,10 @@ VL53L0X_Error VL53L0X_GetRangingMeasurementData(VL53L0X_DEV Dev,
 		 * The range status depends on the device so call a device
 		 * specific function to obtain the right Status.
 		 */
-		//Status |= VL53L0X_get_pal_range_status(Dev, DeviceRangeStatus,
-		//	SignalRate, EffectiveSpadRtnCount,
-		//	pRangingMeasurementData, &PalRangeStatus);
-		Status = VL53L0X_ERROR_NONE;
+		Status |= VL53L0X_get_pal_range_status(Dev, DeviceRangeStatus,
+			SignalRate, EffectiveSpadRtnCount,
+			pRangingMeasurementData, &PalRangeStatus);
+
 		if (Status == VL53L0X_ERROR_NONE)
 			pRangingMeasurementData->RangeStatus = PalRangeStatus;
 

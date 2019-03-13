@@ -7,16 +7,6 @@
 
 using namespace std;
 
-/*
-int input;
-VL53L0X_Dev_t* unit;
-	-int fd
-	-uint8_t I2cDevAddr
-	-VL53L0X_DevData_t Data
-VL53L0X_Error status;
-VL53L0X_RangingMeasurementData_t *data;
-*/
-
 VL53L0X::VL53L0X(int value) {
 	input = value;
 	unit = new VL53L0X_Dev_t;
@@ -34,7 +24,6 @@ void VL53L0X::Initialize() {
 	}
 
 	status = VL53L0X_DataInit(unit);
-	//print_pal_error(status);
 
 	return;
 }

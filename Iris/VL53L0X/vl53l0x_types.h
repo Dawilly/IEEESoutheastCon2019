@@ -1,16 +1,18 @@
 /*******************************************************************************
 Copyright © 2015, STMicroelectronics International N.V.
 All rights reserved.
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-	* Redistributions of source code must retain the above copyright
-	  notice, this list of conditions and the following disclaimer.
-	* Redistributions in binary form must reproduce the above copyright
-	  notice, this list of conditions and the following disclaimer in the
-	  documentation and/or other materials provided with the distribution.
-	* Neither the name of STMicroelectronics nor the
-	  names of its contributors may be used to endorse or promote products
-	  derived from this software without specific prior written permission.
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of STMicroelectronics nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
@@ -31,16 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VL53L0X_TYPES_H_
 #define VL53L0X_TYPES_H_
 
- /** @defgroup porting_type  Basic type definition
-  *  @ingroup  VL53L0X_platform_group
-  *
-  *  @brief  file vl53l0x_types.h files hold basic type definition that may requires porting
-  *
-  *  contains type that must be defined for the platform\n
-  *  when target platform and compiler provide stdint.h and stddef.h it is enough to include it.\n
-  *  If stdint.h is not available review and adapt all signed and unsigned 8/16/32 bits basic types. \n
-  *  If stddef.h is not available review and adapt NULL definition .
-  */
+/** @defgroup porting_type  Basic type definition
+ *  @ingroup  VL53L0X_platform_group
+ *
+ *  @brief  file vl53l0x_types.h files hold basic type definition that may requires porting
+ *
+ *  contains type that must be defined for the platform\n
+ *  when target platform and compiler provide stdint.h and stddef.h it is enough to include it.\n
+ *  If stdint.h is not available review and adapt all signed and unsigned 8/16/32 bits basic types. \n
+ *  If stddef.h is not available review and adapt NULL definition .
+ */
 #include <stdint.h>
 #include <stddef.h>
 
@@ -51,17 +53,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if ! defined(STDINT_H) &&  !defined(_GCC_STDINT_H) &&!defined(__STDINT_DECLS) && !defined(_GCC_WRAP_STDINT_H)
 
-#pragma message("Please review  type definition of STDINT define for your platform and add to list above ")
+ #pragma message("Please review  type definition of STDINT define for your platform and add to list above ")
 
-  /*
-   *  target platform do not provide stdint or use a different #define than above
-   *  to avoid seeing the message below addapt the #define list above or implement
-   *  all type and delete these pragma
-   */
+ /*
+  *  target platform do not provide stdint or use a different #define than above
+  *  to avoid seeing the message below addapt the #define list above or implement
+  *  all type and delete these pragma
+  */
 
-   /** \ingroup VL53L0X_portingType_group
-	* @{
-	*/
+/** \ingroup VL53L0X_portingType_group
+ * @{
+ */
 
 
 typedef unsigned long long uint64_t;

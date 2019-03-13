@@ -68,9 +68,9 @@ int SensorManager::GetSelector() {
 uint16_t SensorManager::ReadRange() {
 	uint16_t value;
 	if (sensors[currentSelector] == nullptr) return 0;
-	//delayMicroseconds(100);
+	delayMicroseconds(100);
 	value = sensors[currentSelector]->readRange();
-	//delayMicroseconds(100);
+	delayMicroseconds(100);
 	return value;
 }
 
