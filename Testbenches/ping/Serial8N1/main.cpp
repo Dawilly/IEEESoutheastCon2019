@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
 
     // Open serial port
     Serial8N1 arduino(argv[1], 9600);
-    cout << "Waiting for remote system . . . " << arduino.readToken() << endl
-         << endl;
+    //cout << "Waiting for remote system . . . " << arduino.readToken() << endl
+         //<< endl;
     
     // Ping a token
     arduino.write("Hello!");
