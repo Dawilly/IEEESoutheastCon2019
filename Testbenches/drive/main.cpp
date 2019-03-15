@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <pigpio.h>
 #include "Serial8N1.h"
 
 #define PIN 4
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
     string commands[] = {
         to_string(1) + ' ' + to_string(36.0),
         to_string(1) + ' ' + to_string(72.0)};
-    int size = size(commands);
+    int size = sizeof(commands) / sizeof(*commands);
 
     // Execute commands when the arduino is ready to receive them
     int i = 0;
@@ -46,6 +47,9 @@ int main(int argc, char **argv) {
             arduino_ready = false;
         }
     }
+
+    // Wait until final command is done being processed
+    while (arduino_ready != true);
     return 0;
 }
 
@@ -53,13 +57,15 @@ int main(int argc, char **argv) {
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag) {
     // At interrupt rising edge, arduino is ready for a new message
     if (level == 1) {
-        cout << "Arduino is ready to receive a command at time " << tick << "."
-             << endl;
-        *flag = true;
+        cout << "GPIO " << gpio
+             << ": Arduino is ready to receive a command at time " << tick
+             << "." << endl;
+        (*(bool *)flag) = true;
     }
     // At falling edge, arduino has begun processing a command
     else {
-        cout << "Arduino has begun processing a command at time " << tick
+        cout << "GPIO " << gpio
+             << ": Arduino has begun processing a command at time " << tick
              << "." << endl;
     }
 }
