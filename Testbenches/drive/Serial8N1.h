@@ -13,6 +13,7 @@ class Serial8N1 {
         ~Serial8N1();
 
         // Receivers (all reads must end in whitespace)
+        char read();
         std::string readToken();
         int readInt();
         double readReal();

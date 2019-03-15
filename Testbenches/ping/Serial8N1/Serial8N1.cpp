@@ -84,6 +84,13 @@ Serial8N1::~Serial8N1() {
     ::close(this->fd);
 }
 
+// Reads a single character
+char Serial8N1::read() {
+    char ch;
+    ::read(this->fd, &ch, 1);
+    return ch;
+}
+
 // Tokens are strings that end in whitespace
 std::string Serial8N1::readToken() {
     std::string output;
