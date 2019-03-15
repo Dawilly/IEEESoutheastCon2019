@@ -6,7 +6,7 @@ all:
 	g++ $(CPPFLAGS) $(GPIOFLAGS) main.cpp Serial8N1.cpp -o $(EXE)
 
 test: all
-	./$(EXE) /dev/ttyS0
+	sudo ./$(EXE) /dev/ttyS0
 
 clean:
 	rm -f $(EXE)
