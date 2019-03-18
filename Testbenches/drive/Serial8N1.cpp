@@ -104,6 +104,24 @@ std::string Serial8N1::readToken() {
     return output;
 }
 
+// A line ends in a '\n' or "\r\n"
+std::string Serial8N1::readLine() {
+    std::string output;
+
+    char ch;
+    while (::read(this->fd, &ch, 1) > 0) {
+        if (ch == '\n') break;
+        if (ch == '\r') {
+            // The next character must be a '\n', so process it
+            ::read(this->fd, &ch, 1);
+            break;
+        }
+        output += ch;
+    }
+
+    return output;
+}
+
 // Integers end in whitespace
 int Serial8N1::readInt() {
     std::string buffer;
