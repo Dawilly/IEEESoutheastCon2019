@@ -1,4 +1,6 @@
-char response[128];
+#define BUFFER_SIZE 128
+
+char response[BUFFER_SIZE];
 
 void setup() {
   Serial.begin(9600, SERIAL_8N1);
@@ -11,7 +13,8 @@ void loop() {
     char buff = Serial.read();
     response[index] = buff;
     index++;
-    if (response[index-1] == '\n' || response[index-1] == '\r') {
+    if (index == BUFFER_SIZE || response[index-1] == '\n'
+        || response[index-1] == '\r') {
       response[index] = '\0';
       index = 0;
       Serial.print(response);
