@@ -48,8 +48,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    // Wait until final command is done being processed
+    // Wait until final command is done processing and finish
     while (arduino_ready != true);
+    gpioTerminate();
     return 0;
 }
 
