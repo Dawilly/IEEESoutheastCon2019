@@ -31,8 +31,9 @@ int main(int argc, char **argv) {
     
     // Initialize a list of commands
     string commands[] = {
-        to_string(1) + ' ' + to_string(36.0),
-        to_string(1) + ' ' + to_string(72.0)};
+        to_string(1) + ' ' + to_string(60.0),
+        to_string(5) + ' ' + to_string(1),
+        to_string(5) + ' ' + to_string(0)};
     int size = sizeof(commands) / sizeof(*commands);
 
     // Execute commands when the arduino is ready to receive them
