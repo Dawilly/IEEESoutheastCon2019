@@ -1,14 +1,24 @@
 #include <Adafruit_VL53L0X.h>
 #include <Wire.h>
+#include "PID_v1.h"
+#include "Encoder.h"
+#include "Motors.h"
+#include "Adafruit_Sensor.h"
+#include "Adafruit_BNO055.h"
+#include "utility/imumaths.h"
 
+// Status pin for Raspberry Pi
+#define STATUS_PIN 30
 // Serial Transmission rate of bits per second
 #define BPS 9600
 // TCA Multiplexer's Address
 #define TCAADDR 0x70
-
 // Sensors configuration (Which sensors exist at which input of the mux)
 // Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
 #define VL53SETUP 0x03
+
+//Set the delay between samples of the IMU
+Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 // Sensor class / instances
 Adafruit_VL53L0X** sensors;
@@ -17,10 +27,22 @@ VL53L0X_RangingMeasurementData_t** measurements;
 // Maximum amount of sensors allowed.
 const int SIZE = 8;
 // Sensor placement
-const int SENSOR_0 0
-const int SENSOR_1 1
+const int SENSOR_0 = 0;
+const int SENSOR_1 = 1;
 // Print buffer cstring. Since Serial is weird. Dawg.
 char buf[100];
+
+// Motor(MotorPWM,MotorIn1,MotorIn2,EncoderA,EncoderB)
+Motor M[2] = 
+{ 
+  {9,6,7,2,4}, // right motor
+  {10,33,35,3,5} // left motor
+};
+
+int Speed = 0;
+unsigned long lastMilli = 0;
+double xVal;
+double xValInitial;
 
 ///setup()
 ///
@@ -31,10 +53,44 @@ void setup() {
   delay(500);
   
   Wire.begin();
-  Serial.begin(BPS);
+  Serial.begin(BPS, SERIAL_8N1);
   Serial.println("\nWall Follow algorithm.");
   Serial.print("Initalizing...");
-  
+
+  //Katie's Set up
+  //////
+  pinMode(STATUS_PIN, OUTPUT);
+  Speed = 200;
+
+  // Setup the IMU
+  if(!bno.begin())
+  {
+    /* There was a problem detecting the BNO055 ... check your connections */
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+    while(1);
+  }
+  delay(300);
+  //Get initial heading from IMU
+  bno.setExtCrystalUse(true);
+  sensors_event_t event;
+  bno.getEvent(&event);
+  Serial.print("Initial X: ");
+  xValInitial = event.orientation.x;
+  Serial.print(xValInitial, 4);
+  Serial.print("\n");
+  delay(500);
+  sensors_event_t event2;
+  bno.getEvent(&event2);
+  Serial.print("Initial X: ");
+  xValInitial = event2.orientation.x;
+  Serial.print(xValInitial, 4);
+  Serial.print("\n");
+
+  // Status is HIGH when ready for commands, and LOW when processing commands
+  digitalWrite(STATUS_PIN, HIGH);
+  //////
+
+  //David's Set up
   setupSensors(VL53SETUP);
 
   Serial.println("Ready!");
@@ -46,48 +102,17 @@ void setup() {
 void loop() {
   // Potential Kill Switch
   bool runRobot = false;
-  bool needAdjusting = false;
 
   //Time varying variables.
-  unsigned long setTime = 0;
-  unsigned long elapsedTime = 0;
-  //Time variables used to calculate the time it took for a single loop.
-  //Added into elapsedTime.
-  unsigned long beginTime = 0;
-  unsigned long endTime = 0;
+  unsigned long setDistance = 0;
 
   //Get the amount of time the robot should run (in milliseconds)
   if (Serial.available() > 0) {
     Serial.println("Enter how long the robot should run (in milliseconds)");
-    setTime = (unsigned long) Serial.parseInt();
-    runRobot = true;
+    setDistance = Serial.parseInt();
+    driveDistance(setDistance);
   }
-  
-  while (runRobot && (setTime > elapsedTime)) {
-    beginTime = micros();
-
-    //Check the two sensors facing the wall.
-    needAdjusting = checkSensors(SENSOR_0, SENSOR_1, 50);
-    if (needAdjusting) {
-      // Adjustment is needed, as the sensors determined threshold has been surpassed.
-      
-      // KATIE: Call for function/instance that can adjust robot
-      // KATIE: The measurements will be in measurements[0] and measurements[1]. Assuming
-      // the first two parameters of checkSensors(int, int, uint16_t) are 0 and 1.
-    }
-    // KATIE: Move robot forward.
-    
-    endTime = micros();
-
-    //Add the time it took for this loop iteration.
-    elapsedTime += (endTime - beginTime);
-  }
-
-  // Should be set to false during the next iteration of loop, but just in case
-  // of optimization...
-  runRobot = false;
 }
-
 
 /// checkSensors(int s1, int s2, uint16_t threshold)
 ///
@@ -109,8 +134,12 @@ bool checkSensors(int s1, int s2, uint16_t threshold) {
   printSensorData(s1);
   sensors[s2]->rangingTest(measurements[s2], false);
   printSensorData(s2);
+  
+  return (abs(measurements[s1]->RangeMilliMeter - measurements[s2]->RangeMilliMeter) >= threshold);
+}
 
-  return ((measurements[s1]->RangeMilliMeter + measurements[s2]->RangeMilliMeter) <= threshold);
+uint16_t sensorDiff(int s1, int s2) {
+  return measurements[s1]->RangeMilliMeter - measurements[s2]->RangeMilliMeter;
 }
 
 /// printSensorData(int pin)
@@ -175,4 +204,63 @@ void tcaselect(uint8_t pin) {
   Wire.beginTransmission(TCAADDR);
   Wire.write(1 << pin);
   Wire.endTransmission();
+}
+
+///
+///Katie's Code
+///
+
+void driveDistance(int distance) {
+  M[0].resetPosition();
+  M[1].resetPosition();
+  Speed = 200;
+  
+  double tickGoal = inchesToTicks(distance);
+  double posAvg = 0.0;
+  bool needAdjusting = false;
+  
+  while(1) {
+    //Katie's Original
+    //double posRight = abs(M[0].getPosition());
+    //double posLeft = abs(M[1].getPosition());
+    //double posAvg = (posRight + posLeft) / 2.0;
+
+    //David's Modification
+    posAvg = calculatePosAvg();
+    needAdjusting = checkSensors(SENSOR_1, SENSOR_0, 50);
+    if (needAdjusting) {
+      //Formula bases
+      Serial.println("Needs adjusting!");
+    }
+    
+    if(posAvg < tickGoal) {
+      M[0].run(FORWARD); //right motor
+      M[1].run(FORWARD); //left motor
+      M[0].Setpoint = Speed;
+      M[1].Setpoint = Speed;
+    } else {
+      for(int j=0;j<2;j++) {
+        M[j].run(STOP);
+        M[j].Setpoint = 0;
+      }
+      break;
+    }
+    
+    if((millis()-lastMilli) >= LOOPTIME) {
+      lastMilli = millis();
+      M[0].updatePID();
+      M[1].updatePID();         
+    }    
+  }
+}
+
+double inchesToTicks(int inches) {
+  double ticksPerInch = 2700.0 / CIRCUMFERENCE;
+  return inches * ticksPerInch;
+}
+
+double calculatePosAvg() {
+  double right = abs(M[0].getPosition());
+  double left = abs(M[1].getPosition());
+  return ((right + left) / 2.0);
 }
