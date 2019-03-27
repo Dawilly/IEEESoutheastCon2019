@@ -4,7 +4,7 @@
 #include <pigpio.h>
 #include "Serial8N1.h"
 
-#define PIN 4
+#define PIN 18
 
 using namespace std;
 
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // Set up GPIO 4 as "interrupt" to indicate arduino is ready for a message
+    // Set up GPIO 18 as "interrupt" to indicate arduino is ready for a message
     gpioInitialise();
     gpioSetMode(PIN, PI_INPUT);
     gpioSetPullUpDown(PIN, PI_PUD_UP);
@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     // Initialize a list of commands
     string commands[] = {
         to_string(1) + ' ' + to_string(60.0),
-        to_string(5) + ' ' + to_string(1),
+	to_string(5) + ' ' + to_string(1),
         to_string(5) + ' ' + to_string(0)};
     int size = sizeof(commands) / sizeof(*commands);
 
@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-// Function to handle change in level of GPIO 4 
+// Function to handle change in level of GPIO 18
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag) {
     // At interrupt rising edge, arduino is ready for a new message
     if (level == 1) {
