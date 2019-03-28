@@ -4,7 +4,7 @@
 #include <pigpio.h>
 #include "Serial8N1.h"
 
-#define PIN 4
+#define PIN 18
 
 using namespace std;
 
@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // Set up GPIO 4 as "interrupt" to indicate arduino is ready for a message
+    // Set up GPIO 18 as "interrupt" to indicate arduino is ready for a message
     gpioInitialise();
     gpioSetMode(PIN, PI_INPUT);
     gpioSetPullUpDown(PIN, PI_PUD_UP);
@@ -31,29 +31,32 @@ int main(int argc, char **argv) {
     
     // Initialize a list of commands
     string commands[] = {
-        to_string(1) + ' ' + to_string(36.0),
-        to_string(1) + ' ' + to_string(72.0)};
+        to_string(1) + ' ' + to_string(30.0),
+        to_string(5) + ' ' + to_string(1)};
     int size = sizeof(commands) / sizeof(*commands);
 
     // Execute commands when the arduino is ready to receive them
     int i = 0;
     while (i < size) {
         if (arduino_ready == true) {
-            // Wait so we can see all the commands aren't sent at once 
-            this_thread::sleep_for(chrono::seconds(1));
-            // Send the new command
             arduino.write(commands[i]);
             i++;
             arduino_ready = false;
         }
     }
 
-    // Wait until final command is done being processed
+    // Hold block for 3 seconds, then deposit block
     while (arduino_ready != true);
+    this_thread::sleep_for(chrono::seconds(3));
+    arduino.write(to_string(5) + ' ' + to_string(0));
+
+    // Wait until final command is done processing and finish
+    while (arduino_ready != true);
+    gpioTerminate();
     return 0;
 }
 
-// Function to handle change in level of GPIO 4 
+// Function to handle change in level of GPIO 18
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag) {
     // At interrupt rising edge, arduino is ready for a new message
     if (level == 1) {
