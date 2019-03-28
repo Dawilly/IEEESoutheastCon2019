@@ -4,6 +4,13 @@
 #ifndef __IRSENSOR__INCLUDED__
 #define __IRSENSOR__INCLUDED__
 
+enum SensorPlacement {
+	LeftBottom = 6,
+	LeftTop = 7,
+	RightTop = 2,
+	RightBottom = 3
+};
+
 class IRSensor {
 	
 	private:

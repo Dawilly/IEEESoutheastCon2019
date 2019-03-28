@@ -1,6 +1,6 @@
 #include <Wire.h>
+#include "IRSensor/IRSensor.h"
 #include "WallFollow.h"
-#include "IRSensor.h"
 
 // Serial Transmission rate of bits per second
 #define BPS 9600

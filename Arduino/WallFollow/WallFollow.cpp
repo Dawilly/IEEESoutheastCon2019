@@ -1,6 +1,5 @@
 #include "WallFollow.h"
-
-#define DRIVE 0
+#include "IRSensor/IRSensor.cpp"
 
 using namespace std;
 
@@ -17,6 +16,8 @@ WallFollow::WallFollow(IRSensor** sensors, bool debug = false) {
 	this->selectedSensor_0 = -1;
 	this->selectedSensor_1 = -1;
 	this->debug = debug;
+  this->val0 = 0;
+  this->val1 = 0;
 }
 
 /// Public Methods ///
@@ -24,20 +25,30 @@ WallFollow::WallFollow(IRSensor** sensors, bool debug = false) {
 /// Act()
 ///
 /// Description: Performs the operations for the wall follow algorithm.
-void WallFollow::Act() {
-	bool needsAdjusting = checkSensors(selectedSensor_0, selectedSensor_1, threshold);
-  bool tooClose = LimitCheck(selectedSensor_0, threshold / 2); 
+int WallFollow::Act() {
+  int results = 0;
+	bool needsAdjusting = checkForAdjustment(selectedSensor_0, selectedSensor_1, threshold);
 	
 	if (needsAdjusting) {
 		/// Call Drive to Turn.
-		sprintf(buf, "Adjustment is needed!\n");
+    if (val0 - val1 < 0) {
+      //Turn Left
+      sprintf(buf, "Adjustment is needed! Turn Left!\n");
+      results = 1;
+    } else if (val0 - val1 > 0) {
+      //Turn Right
+      sprintf(buf, "Adjustment is needed! Turn Right!\n");
+      results = 2;
+    } else {
+      //Wtf how?
+      sprintf(buf, "This shouldn't occur. Logically speaking.\n");
+      results = -1;
+    }
+		
 		Serial.print(buf);
-    #if DRIVE == 1
-    
-    #endif
 	}
   
-	return;
+	return results;
 }
 
 /// Act(int s0, int s1)
@@ -47,9 +58,9 @@ void WallFollow::Act() {
 ///	Parameters:
 /// @int s0 - The I2C Mux pin for the first sensor.
 /// @int s1 - The I2C Mux pin for the second sensor.
-void WallFollow::Act(int s0, int s1) {
+int WallFollow::Act(int s0, int s1) {
 	SetSensorsToTrace(s0, s1);
-	Act();
+	return Act();
 }
 
 /// Initialize(int s0, int s1, uint16_t threshold)
@@ -110,9 +121,7 @@ void WallFollow::TCASELECT(uint8_t pin) {
 /// True - If the measurement between s1 and s2 is greater than or equal to 
 ///        the threshold.
 /// False - Otherwise.
-bool WallFollow::checkSensors(int s0, int s1, uint16_t limit) {
-	uint16_t val0 = 0;
-	uint16_t val1 = 0;
+bool WallFollow::checkForAdjustment(int s0, int s1, uint16_t limit) {
 	TCASELECT(s0);
 	delay(100);
 	val0 = sensors[s0]->readRange();
@@ -127,11 +136,6 @@ bool WallFollow::checkSensors(int s0, int s1, uint16_t limit) {
 	}
 	
 	return (abs(val0 - val1) >= threshold);
-}
-
-bool WallFollow::LimitCheck(int s0, uint16_t limit) {
-  uint16_t val0 = sensors[s0]->lastReading();
-  return (val0 >= limit);
 }
 
 /// printSensorData(int pin)

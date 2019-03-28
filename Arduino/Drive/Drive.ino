@@ -6,7 +6,7 @@
 #include "Adafruit_BNO055.h"
 #include "utility/imumaths.h"
 #include "Belt.h"
-#include "WallFollow/IRSensor.cpp"
+//#include "IRSensor/IRSensor.cpp"
 #include "WallFollow/WallFollow.cpp"
 
 // Status pin for Raspberry Pi
@@ -159,6 +159,12 @@ void loop() {
     Serial.print("Belt position is ");
     Serial.print(B.getPosition());
     Serial.print(".\n");
+  } else if (cmd == 6) {
+    Serial.print("Following the Wall for ");
+    Serial.print(data);
+    Serial.print(" inches.");
+    Serial.print("\n");
+    driveWallFollow(data);
   }
 
   // Reset command
@@ -214,7 +220,55 @@ void driveDistance(int distance) {
     double posLeft = abs(M[1].getPosition());
     double posAvg = (posRight + posLeft) / 2.0;
     
-    wallAlg->Act();
+    if(posAvg < tickGoal) {
+      M[0].run(FORWARD); //right motor
+      M[1].run(FORWARD); //left motor
+      M[0].Setpoint = Speed;
+      M[1].Setpoint = Speed;
+    }
+    else {
+      for(int j=0;j<2;j++) {
+        M[j].run(STOP);
+        M[j].Setpoint = 0;
+      }
+      break;
+    }
+    if((millis()-lastMilli) >= LOOPTIME) {
+      lastMilli = millis();
+      M[0].updatePID();
+      M[1].updatePID();         
+    }    
+  }
+}
+
+/// driveWallFollow(int distance)
+///
+/// Author: David Weil
+/// Description: Sets the motors to drive, following the wall of the arena
+///              with a given distance.
+/// Parameters:
+/// @int distance - The distance to follow the wall, in inches.
+
+/// To-do: Implement initial turn.
+void driveWallFollow(int distance) {
+  int adjustment = 0;
+  M[0].resetPosition();
+  M[1].resetPosition();
+  Speed = 200;
+  double tickGoal = inchesToTicks(distance);
+  
+  while(1) {
+    double posRight = abs(M[0].getPosition());
+    double posLeft = abs(M[1].getPosition());
+    double posAvg = (posRight + posLeft) / 2.0;
+
+    adjustment = wallAlg->Act();
+
+    if (adjustment == 1) {
+      turnLeft(5);
+    } else if (adjustment == 2) {
+      turnRight(5);
+    }
     
     if(posAvg < tickGoal) {
       M[0].run(FORWARD); //right motor
