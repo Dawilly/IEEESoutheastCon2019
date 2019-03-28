@@ -31,23 +31,24 @@ int main(int argc, char **argv) {
     
     // Initialize a list of commands
     string commands[] = {
-        to_string(1) + ' ' + to_string(60.0),
-	to_string(5) + ' ' + to_string(1),
-        to_string(5) + ' ' + to_string(0)};
+        to_string(1) + ' ' + to_string(30.0),
+	to_string(5) + ' ' + to_string(1)};
     int size = sizeof(commands) / sizeof(*commands);
 
     // Execute commands when the arduino is ready to receive them
     int i = 0;
     while (i < size) {
         if (arduino_ready == true) {
-            // Wait so we can see all the commands aren't sent at once 
-            this_thread::sleep_for(chrono::seconds(1));
-            // Send the new command
             arduino.write(commands[i]);
             i++;
             arduino_ready = false;
         }
     }
+
+    // Hold block for 3 seconds, then deposit block
+    while (arduino_ready != true);
+    this_thread::sleep_for(chrono::seconds(3));
+    arduino.write(to_string(5) + ' ' + to_string(0));
 
     // Wait until final command is done processing and finish
     while (arduino_ready != true);
