@@ -6,8 +6,8 @@
 #include "Adafruit_BNO055.h"
 #include "utility/imumaths.h"
 #include "Belt.h"
-#include "WallFollow/IRSensor.h"
-#include "WallFollow/WallFollow.h"
+#include "WallFollow/IRSensor.cpp"
+#include "WallFollow/WallFollow.cpp"
 
 // Status pin for Raspberry Pi
 #define STATUS_PIN 30
