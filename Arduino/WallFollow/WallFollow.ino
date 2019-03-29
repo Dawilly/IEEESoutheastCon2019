@@ -9,7 +9,8 @@
 
 // Sensors configuration (Which sensors exist at which input of the mux)
 // Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
-#define VL53SETUP 0x03
+// 6 and 7 = 1100 0000
+#define VL53SETUP 0xC0
 
 // Sensor class / instances
 IRSensor** sensors;
@@ -43,7 +44,7 @@ void setup() {
 void loop() {
   // Potential Kill Switch
   alg = new WallFollow(sensors, true);
-  alg->Initialize(0, 1, 100);
+  alg->Initialize(LeftBottom, LeftTop, 40);
   while(1) {
     alg->Act();
     delay(100);
@@ -65,6 +66,7 @@ void setupSensors(uint8_t value) {
       _bit = value % 2;
       value = value / 2;
       sensors[i] = (_bit == 1) ? new IRSensor(false) : NULL;
+      TCASELECT(i);
       if (sensors[i] != NULL && !sensors[i]->success) {
         //If the sensor failed to begin. Print the error message. Then delete the instance.
         sprintf(buf, "Failed to boot VL53L0X #%d.\n", i);
@@ -73,4 +75,11 @@ void setupSensors(uint8_t value) {
       }
   }
   return;
+}
+
+void TCASELECT(uint8_t pin) {
+  if (pin > 7  || pin < 0) return;
+  Wire.beginTransmission(TCAADDR);
+  Wire.write(1 << pin);
+  Wire.endTransmission();
 }

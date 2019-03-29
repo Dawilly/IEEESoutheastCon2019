@@ -23,7 +23,7 @@ double data = 0;
 
 // Sensors configuration (Which sensors exist at which input of the mux)
 // Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
-#define VL53SETUP 0x03
+#define VL53SETUP 0xC0
 // Maximum amount of sensors allowed.
 const int SIZE = 8;
 
@@ -85,7 +85,7 @@ void setup() {
 
   // Setup the Algorithm(s)
   wallAlg = new WallFollow(sensors, true);
-  wallAlg->Initialize(1, 0, 100);
+  wallAlg->Initialize(LeftBottom, LeftTop, 40);
 
   // Status is HIGH when ready for commands, and LOW when processing commands
   digitalWrite(STATUS_PIN, HIGH);
@@ -555,6 +555,7 @@ void setupSensors(uint8_t value) {
   for (i = 0; i < SIZE; i++) {
       _bit = value % 2;
       value = value / 2;
+      TCASELECT(i);
       sensors[i] = (_bit == 1) ? new IRSensor(false) : NULL;
       if (sensors[i] != NULL && !sensors[i]->success) {
         //If the sensor failed to begin. Print the error message. Then delete the instance.
@@ -564,4 +565,11 @@ void setupSensors(uint8_t value) {
       }
   }
   return;
+}
+
+void TCASELECT(uint8_t pin) {
+  if (pin > 7  || pin < 0) return;
+  Wire.beginTransmission(0x70);
+  Wire.write(1 << pin);
+  Wire.endTransmission();
 }
