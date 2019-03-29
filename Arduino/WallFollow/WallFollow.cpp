@@ -31,11 +31,11 @@ int WallFollow::Act() {
 	
 	if (needsAdjusting) {
 		/// Call Drive to Turn.
-    if (val0 - val1 < 0) {
+    if ((int)val0 - (int)val1 < 0) {
       //Turn Left
       sprintf(buf, "Adjustment is needed! Turn Left!\n");
       results = 1;
-    } else if (val0 - val1 > 0) {
+    } else if ((int)val0 - (int)val1 > 0) {
       //Turn Right
       sprintf(buf, "Adjustment is needed! Turn Right!\n");
       results = 2;
@@ -123,19 +123,23 @@ void WallFollow::TCASELECT(uint8_t pin) {
 /// False - Otherwise.
 bool WallFollow::checkForAdjustment(int s0, int s1, uint16_t limit) {
 	TCASELECT(s0);
-	delay(100);
+	delay(15);
 	val0 = sensors[s0]->readRange();
 	
 	TCASELECT(s1);
-	delay(100);
+	delay(15);
 	val1 = sensors[s1]->readRange();
 	
 	if (debug) {
-		printSensorData(s0);
-		printSensorData(s1);
+		//printSensorData(s0);
+		//printSensorData(s1);
+	  //sprintf(buf, "val0 = %d\nval1 = %d\n", val0, val1);
+    //Serial.print(buf);
+    sprintf(buf, "val0 - val1 = %d\n", ((int) val0 - (int) val1));
+    Serial.print(buf);
 	}
 	
-	return (abs(val0 - val1) >= threshold);
+	return (abs((int)val0 - (int)val1) >= threshold);
 }
 
 /// printSensorData(int pin)
