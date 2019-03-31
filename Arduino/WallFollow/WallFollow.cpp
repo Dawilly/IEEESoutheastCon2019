@@ -33,19 +33,19 @@ int WallFollow::Act() {
 		//Call Drive to Turn.
 		if (val0 - val1 < 0) {
 			//Turn Left
-			sprintf(buf, "Adjustment is needed! Turn Left!\n");
+			//sprintf(buf, "Adjustment is needed! Turn Left!\n");
 			results = 1;
 		} else if (val0 - val1 > 0) {
 			//Turn Right
-			sprintf(buf, "Adjustment is needed! Turn Right!\n");
+			//sprintf(buf, "Adjustment is needed! Turn Right!\n");
 			results = 2;
 		} else {
 			//Wtf how?
-			sprintf(buf, "This shouldn't occur. Logically speaking.\n");
+			//sprintf(buf, "This shouldn't occur. Logically speaking.\n");
 			results = -1;
 		}
 		
-		Serial.print(buf);
+		//Serial.print(buf);
 	}
   
 	return results;
@@ -159,4 +159,15 @@ void WallFollow::printSensorData(int pin) {
 		Serial.print(buf);
 	}
 	return;	
+}
+
+int WallFollow::FollowingLeftOrRight() {
+	if ((selectedSensor_0 == RightBottom || selectedSensor_0 == RightTop) &&
+		(selectedSensor_1 == RightBottom || selectedSensor_1 == RightTop)) {
+		return 1;
+	} else if ((selectedSensor_0 == LeftBottom || selectedSensor_0 == LeftTop) &&
+			   (selectedSensor_1 == LeftBottom || selectedSensor_1 == LeftTop)) {
+		return 0;
+	}
+	return -1;
 }

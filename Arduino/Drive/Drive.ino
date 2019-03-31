@@ -88,7 +88,7 @@ void setup() {
   setupSensors(VL53SETUP);
 
   // Setup the Algorithm(s)
-  wallAlg = new WallFollow(sensors, true);
+  wallAlg = new WallFollow(sensors, false);
   wallAlg->Initialize(RightBottom, RightTop, 25);
 
   // Status is HIGH when ready for commands, and LOW when processing commands
@@ -251,6 +251,20 @@ void driveDistance(int distance) {
   }
 }
 
+double calculateDegreeDiff(bool orientation) {
+  sensors_event_t event;
+  bno.getEvent(&event);
+  double xVal = event.orientation.x;
+  
+  if (orientation) {
+    // RightBottom & RightTop
+    return xVal - 90.0;
+  } else {
+    // LeftBottom & LeftTop
+    return xVal - 180.0;
+  }
+}
+
 /// driveWallFollow(int distance)
 ///
 /// Author: David Weil
@@ -266,12 +280,14 @@ void driveWallFollow(int distance) {
 	double posRight = 0.0;
 	double posLeft = 0.0;
 	double posAvg = 0.0;
+  double xVal = 0.0;
 	int adjustment = 0;
+  bool orientation = wallAlg->FollowingLeftOrRight();
 	
 	M[0].resetPosition();
 	M[1].resetPosition();
 	
-	Speed = 50;
+	Speed = 200;
 	
 	while(running) {
 		posRight = abs(M[0].getPosition());
@@ -284,33 +300,24 @@ void driveWallFollow(int distance) {
 			switch(adjustment) {
 				//Turn left
 				case 1:
-					M[0].Setpoint = 10;
-          M[1].Setpoint = 10;
-					M[0].run(FORWARD);
-					M[1].run(BACKWARD);
-          //Speed = 10;
-					break;
+          delay(50);
+					xVal = calculateDegreeDiff(orientation);
+          turnLeft(xVal);
 				//Turn Right
 				case 2:
-          M[0].Setpoint = 10;
-          M[1].Setpoint = 10;
-					M[0].run(BACKWARD);
-					M[1].run(FORWARD);
-          //Speed = 10;
-					break;
+          delay(50);
+          xVal = calculateDegreeDiff(orientation);
+					turnRight(xVal);
 				//Forward
 				case 0:
 				default:
-          M[0].Setpoint = 50;
-          M[1].Setpoint = 50;
 					M[0].run(FORWARD); //right motor
 					M[1].run(FORWARD); //left motor
-          //Speed = 50;
+          Speed = 200;
 					break;
 			}
-
-			//M[0].Setpoint = Speed;
-			//M[1].Setpoint = Speed;
+			M[0].Setpoint = Speed;
+			M[1].Setpoint = Speed;
 		} else {
 			//Unrolled loop for optimization. 
 			M[0].run(STOP);
