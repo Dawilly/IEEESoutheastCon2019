@@ -12,15 +12,15 @@ class WallFollow {
 		IRSensor** sensors;
 		int selectedSensor_0;
 		int selectedSensor_1;
-		uint16_t threshold;
-    uint16_t val1;
-    uint16_t val0;
+		int threshold;
+		int val1;
+		int val0;
 		bool debug;
 		char buf[100];
 		
 		/// Methods ///
 		void TCASELECT(uint8_t);
-		bool checkForAdjustment(int, int, uint16_t);
+		bool checkForAdjustment(int, int, int);
 		void printSensorData(int);
 	public:
 		/// Methods ///
@@ -28,7 +28,7 @@ class WallFollow {
 		void SetSensorsToTrace(int, int);
 		int Act();
 		int Act(int, int);
-		void Initialize(int, int, uint16_t);
+		void Initialize(int, int, int);
 };
 
 #endif

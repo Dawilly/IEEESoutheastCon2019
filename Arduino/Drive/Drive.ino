@@ -1,3 +1,5 @@
+
+
 #include "PID_v1.h"
 #include "Encoder.h"
 #include "Motors.h"
@@ -23,7 +25,9 @@ double data = 0;
 
 // Sensors configuration (Which sensors exist at which input of the mux)
 // Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
-#define VL53SETUP 0xC0
+// 0xC0 = 1100 0000
+// 0x0C = 0000 1100
+#define VL53SETUP 0x0C
 // Maximum amount of sensors allowed.
 const int SIZE = 8;
 
@@ -85,7 +89,7 @@ void setup() {
 
   // Setup the Algorithm(s)
   wallAlg = new WallFollow(sensors, true);
-  wallAlg->Initialize(LeftBottom, LeftTop, 40);
+  wallAlg->Initialize(RightBottom, RightTop, 25);
 
   // Status is HIGH when ready for commands, and LOW when processing commands
   digitalWrite(STATUS_PIN, HIGH);
@@ -210,6 +214,12 @@ void driveTimed(int endTime) {
   }
 }
 
+/// driveDistance(int distance)
+///
+/// Author: Katie McCray
+/// Description: Sets the motors to drive a given distance in inches.
+/// Parameter:
+/// @int distance - The distance to drive for, in inches.
 void driveDistance(int distance) {
   M[0].resetPosition();
   M[1].resetPosition();
@@ -251,44 +261,72 @@ void driveDistance(int distance) {
 
 /// To-do: Implement initial turn.
 void driveWallFollow(int distance) {
-  int adjustment = 0;
-  M[0].resetPosition();
-  M[1].resetPosition();
-  Speed = 200;
-  double tickGoal = inchesToTicks(distance);
-  
-  while(1) {
-    double posRight = abs(M[0].getPosition());
-    double posLeft = abs(M[1].getPosition());
-    double posAvg = (posRight + posLeft) / 2.0;
+	bool running = true;
+	double tickGoal = inchesToTicks(distance);
+	double posRight = 0.0;
+	double posLeft = 0.0;
+	double posAvg = 0.0;
+	int adjustment = 0;
+	
+	M[0].resetPosition();
+	M[1].resetPosition();
+	
+	Speed = 50;
+	
+	while(running) {
+		posRight = abs(M[0].getPosition());
+		posLeft = abs(M[1].getPosition());
+		posAvg = (posRight + posLeft) / 2.0;
+		
+		adjustment = wallAlg->Act();
+		
+		if(posAvg < tickGoal) {
+			switch(adjustment) {
+				//Turn left
+				case 1:
+					M[0].Setpoint = 10;
+          M[1].Setpoint = 10;
+					M[0].run(FORWARD);
+					M[1].run(BACKWARD);
+          //Speed = 10;
+					break;
+				//Turn Right
+				case 2:
+          M[0].Setpoint = 10;
+          M[1].Setpoint = 10;
+					M[0].run(BACKWARD);
+					M[1].run(FORWARD);
+          //Speed = 10;
+					break;
+				//Forward
+				case 0:
+				default:
+          M[0].Setpoint = 50;
+          M[1].Setpoint = 50;
+					M[0].run(FORWARD); //right motor
+					M[1].run(FORWARD); //left motor
+          //Speed = 50;
+					break;
+			}
 
-    adjustment = wallAlg->Act();
-
-    if (adjustment == 1) {
-      turnLeft(5);
-    } else if (adjustment == 2) {
-      turnRight(5);
-    }
-    
-    if(posAvg < tickGoal) {
-      M[0].run(FORWARD); //right motor
-      M[1].run(FORWARD); //left motor
-      M[0].Setpoint = Speed;
-      M[1].Setpoint = Speed;
-    }
-    else {
-      for(int j=0;j<2;j++) {
-        M[j].run(STOP);
-        M[j].Setpoint = 0;
-      }
-      break;
-    }
-    if((millis()-lastMilli) >= LOOPTIME) {
-      lastMilli = millis();
-      M[0].updatePID();
-      M[1].updatePID();         
-    }    
-  }
+			//M[0].Setpoint = Speed;
+			//M[1].Setpoint = Speed;
+		} else {
+			//Unrolled loop for optimization. 
+			M[0].run(STOP);
+			M[0].Setpoint = 0;
+			M[1].run(STOP);
+			M[1].Setpoint = 0;
+			running = false;
+			continue;
+		}
+		
+		if((millis()-lastMilli) >= LOOPTIME) {
+			lastMilli = millis();
+			M[0].updatePID();
+			M[1].updatePID();         
+		}    
+	}
 }
 
 double inchesToTicks(int inches) {
@@ -557,7 +595,14 @@ void setupSensors(uint8_t value) {
       value = value / 2;
       TCASELECT(i);
       sensors[i] = (_bit == 1) ? new IRSensor(false) : NULL;
-      if (sensors[i] != NULL && !sensors[i]->success) {
+      
+	  if (i == RightBottom) {
+		  // No offset
+	  } else if (i == RightTop) {
+		  // No offset
+	  }
+	  
+	  if (sensors[i] != NULL && !sensors[i]->success) {
         //If the sensor failed to begin. Print the error message. Then delete the instance.
         sprintf(buf, "Failed to boot VL53L0X #%d.\n", i);
         Serial.println(buf);
