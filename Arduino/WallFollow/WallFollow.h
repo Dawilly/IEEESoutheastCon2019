@@ -29,6 +29,7 @@ class WallFollow {
 		int Act();
 		int Act(int, int);
 		void Initialize(int, int, int);
+		int FollowingLeftOrRight();
 };
 
 #endif
