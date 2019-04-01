@@ -251,20 +251,6 @@ void driveDistance(int distance) {
   }
 }
 
-double calculateDegreeDiff(bool orientation) {
-  sensors_event_t event;
-  bno.getEvent(&event);
-  double xVal = event.orientation.x;
-  
-  if (orientation) {
-    // RightBottom & RightTop
-    return xVal - 90.0;
-  } else {
-    // LeftBottom & LeftTop
-    return xVal - 180.0;
-  }
-}
-
 /// driveWallFollow(int distance)
 ///
 /// Author: David Weil
@@ -288,8 +274,8 @@ void driveWallFollow(int distance) {
 	M[1].resetPosition();
 
   Speed = 100;
-  int SpeedLeft = Speed;
-  int SpeedRight = Speed;
+  double SpeedLeft = Speed;
+  double SpeedRight = Speed;
 	
 	while(running) {
 		posRight = abs(M[0].getPosition());
@@ -302,23 +288,23 @@ void driveWallFollow(int distance) {
 			switch(adjustment) {
 				//Stride Left
 				case 1:
-          SpeedLeft = (Speed / 2);
-          SpeedRight = Speed;
-          break;
+					SpeedLeft = (Speed  * 0.75);
+					SpeedRight = Speed;
+					break;
 				//Stride Right
 				case 2:
-          SpeedLeft = Speed;
-          SpeedRight = (Speed / 2);
-          break;
+					SpeedLeft = Speed;
+					SpeedRight = (Speed * 0.75);
+					break;
 				//Forward
 				case 0:
 				default:
-          SpeedLeft = Speed;
-          SpeedRight = Speed;
+					SpeedLeft = Speed;
+					SpeedRight = Speed;
 					break;
 			}
-      M[0].run(FORWARD); //right motor
-      M[1].run(FORWARD); //left motor
+			M[0].run(FORWARD); //right motor
+			M[1].run(FORWARD); //left motor
 			M[0].Setpoint = SpeedRight;
 			M[1].Setpoint = SpeedLeft;
 		} else {
