@@ -27,7 +27,7 @@ double data = 0;
 // Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
 // 0xC0 = 1100 0000
 // 0x0C = 0000 1100
-#define VL53SETUP 0x0C
+#define VL53SETUP 0x0F
 // Maximum amount of sensors allowed.
 const int SIZE = 8;
 
@@ -88,8 +88,8 @@ void setup() {
   setupSensors(VL53SETUP);
 
   // Setup the Algorithm(s)
-  wallAlg = new WallFollow(sensors, false);
-  wallAlg->Initialize(RightBottom, RightTop, 25);
+  wallAlg = new WallFollow(sensors, true);
+  wallAlg->Initialize(LeftBottom, LeftTop, 25);
 
   // Status is HIGH when ready for commands, and LOW when processing commands
   digitalWrite(STATUS_PIN, HIGH);
@@ -286,8 +286,10 @@ void driveWallFollow(int distance) {
 	
 	M[0].resetPosition();
 	M[1].resetPosition();
-	
-	Speed = 200;
+
+  Speed = 100;
+  int SpeedLeft = Speed;
+  int SpeedRight = Speed;
 	
 	while(running) {
 		posRight = abs(M[0].getPosition());
@@ -298,26 +300,27 @@ void driveWallFollow(int distance) {
 		
 		if(posAvg < tickGoal) {
 			switch(adjustment) {
-				//Turn left
+				//Stride Left
 				case 1:
-          delay(50);
-					xVal = calculateDegreeDiff(orientation);
-          turnLeft(xVal);
-				//Turn Right
+          SpeedLeft = (Speed / 2);
+          SpeedRight = Speed;
+          break;
+				//Stride Right
 				case 2:
-          delay(50);
-          xVal = calculateDegreeDiff(orientation);
-					turnRight(xVal);
+          SpeedLeft = Speed;
+          SpeedRight = (Speed / 2);
+          break;
 				//Forward
 				case 0:
 				default:
-					M[0].run(FORWARD); //right motor
-					M[1].run(FORWARD); //left motor
-          Speed = 200;
+          SpeedLeft = Speed;
+          SpeedRight = Speed;
 					break;
 			}
-			M[0].Setpoint = Speed;
-			M[1].Setpoint = Speed;
+      M[0].run(FORWARD); //right motor
+      M[1].run(FORWARD); //left motor
+			M[0].Setpoint = SpeedRight;
+			M[1].Setpoint = SpeedLeft;
 		} else {
 			//Unrolled loop for optimization. 
 			M[0].run(STOP);
