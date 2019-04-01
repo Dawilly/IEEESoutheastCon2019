@@ -25,7 +25,8 @@ double data = 0;
 // Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
 // 0xC0 = 1100 0000
 // 0x0C = 0000 1100
-#define VL53SETUP 0x0F
+// 0xCF = 1100 1111
+#define VL53SETUP 0xCF
 // Maximum amount of sensors allowed.
 const int SIZE = 8;
 
@@ -173,12 +174,21 @@ void loop() {
 		Serial.print("Belt position is ");
 		Serial.print(B.getPosition());
 		Serial.print(".\n");
-	// (Command 6: Wall Follow)
+	// (Command 6: Wall Follow [Right Side])
 	} else if (cmd == 6) {
-		Serial.print("Following the Wall for ");
+		Serial.print("Following the Wall (Right Side) for ");
 		Serial.print(data);
 		Serial.print(" inches.");
 		Serial.print("\n");
+		wallAlg->SetSensorsToTrace(RightBottom, RightTop);
+		driveWallFollow(data);		
+	// (Command 7: Wall Follow [Left Side])
+	} else if (cmd == 7) {
+		Serial.print("Following the Wall (Left Side) for ");
+		Serial.print(data);
+		Serial.print(" inches.");
+		Serial.print("\n");
+		wallAlg->SetSensorsToTrace(LeftBottom, LeftTop);
 		driveWallFollow(data);
 	}
 
