@@ -33,19 +33,19 @@ int WallFollow::Act() {
 		//Call Drive to Turn.
 		if (val0 - val1 < 0) {
 			//Turn Left
-			//sprintf(buf, "Adjustment is needed! Turn Left!\n");
+			sprintf(buf, "Adjustment is needed! Turn Left!\n");
 			results = 1;
 		} else if (val0 - val1 > 0) {
 			//Turn Right
-			//sprintf(buf, "Adjustment is needed! Turn Right!\n");
+			sprintf(buf, "Adjustment is needed! Turn Right!\n");
 			results = 2;
 		} else {
 			//Wtf how?
-			//sprintf(buf, "This shouldn't occur. Logically speaking.\n");
+			sprintf(buf, "This shouldn't occur. Logically speaking.\n");
 			results = -1;
 		}
 		
-		//Serial.print(buf);
+		Serial.print(buf);
 	}
   
 	return results;
