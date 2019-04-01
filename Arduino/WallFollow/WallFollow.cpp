@@ -133,10 +133,10 @@ bool WallFollow::checkForAdjustment(int s0, int s1, int limit) {
 	if (debug) {
 		//printSensorData(s0);
 		//printSensorData(s1);
-	  //sprintf(buf, "val0 = %d\nval1 = %d\n", val0, val1);
-    //Serial.print(buf);
-    sprintf(buf, "val0 - val1 = %d\n", (val0 - val1));
-    Serial.print(buf);
+		//sprintf(buf, "val0 = %d\nval1 = %d\n", val0, val1);
+		//Serial.print(buf);
+		sprintf(buf, "val0 - val1 = %d\n", (val0 - val1));
+		Serial.print(buf);
 	}
 	
 	return (abs(val0 - val1) >= threshold);
