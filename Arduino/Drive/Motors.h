@@ -22,9 +22,9 @@
 // #define Ki          0.9
 // #define Kd          0.09
 
-#define Kp          0.5
-#define Ki          0.035
-#define Kd          0.4
+#define Kp          0.9
+#define Ki          0.02
+#define Kd          0.04
 
 
 class Motor
