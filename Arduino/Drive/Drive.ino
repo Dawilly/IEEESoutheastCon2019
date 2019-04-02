@@ -10,7 +10,7 @@
 #include "WallFollow/WallFollow.cpp"
 
 // Status pin for Raspberry Pi
-#define STATUS_PIN 30
+#define STATUS_PIN 36
 
 int Speed = 0;
 unsigned long lastMilli = 0;
