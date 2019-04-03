@@ -3,8 +3,8 @@
 #include "Belt.h"
 
 #define BELT_SPEED 255
-#define QUICK_RANGE 600
-#define SLOW_RANGE 20
+#define QUICK_RANGE 775
+#define SLOW_RANGE 30
 
 const static long LEVEL_TO_ENCODER[] = {
     POSITION_WAIT,
