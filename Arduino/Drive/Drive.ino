@@ -32,14 +32,7 @@ const int SIZE = 8;
 
 //Set the delay between samples of the IMU
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
-double xVal;
-double xValInitial;
-
-//Setup timing variables
-unsigned long previousTime = 0;
-// Run for 50 ms and then off for 50 ms
-int runTime = 50;
-bool runningMotors;
+sensors_event_t heading;
 
 // Motor(MotorPWM,MotorIn1,MotorIn2,EncoderA,EncoderB)
 Motor M[2] = 
@@ -75,18 +68,14 @@ void setup() {
 	delay(300);
 	//Get initial heading from IMU
 	bno.setExtCrystalUse(true);
-	sensors_event_t event;
-	bno.getEvent(&event);
+	bno.getEvent(&heading);
 	Serial.print("Initial X: ");
-	xValInitial = event.orientation.x;
-	Serial.print(xValInitial, 4);
+	Serial.print(heading.orientation.x, 4);
 	Serial.print("\n");
 	delay(500);
-	sensors_event_t event2;
-	bno.getEvent(&event2);
+	bno.getEvent(&heading);
 	Serial.print("Initial X: ");
-	xValInitial = event2.orientation.x;
-	Serial.print(xValInitial, 4);
+	Serial.print(heading.orientation.x, 4);
 	Serial.print("\n");
 
 	// Setup the IR Sensors
@@ -146,7 +135,8 @@ void loop() {
 		Serial.print(data);
 		Serial.print(" degrees.");
 		Serial.print("\n");
-		turnRight(data);
+		bno.getEvent(&heading);
+    turn((int)(heading.orientation.x + data) % 360);  
 	}
 	// (Command 3: Turn left)
 	else if(cmd == 3) {
@@ -154,7 +144,8 @@ void loop() {
 		Serial.print(data);
 		Serial.print(" degrees.");
 		Serial.print("\n");
-		turnLeft(data);
+		bno.getEvent(&heading);
+    turn((int)(heading.orientation.x - data) % 360);
 	}
 	// (Command 4: Drive by time)
 	else if(cmd == 4) {
@@ -191,6 +182,13 @@ void loop() {
 		wallAlg->SetSensorsToTrace(LeftBottom, LeftTop);
 		driveWallFollow(data);
 	}
+  // Command 8: Turn to specified absolute heading
+  else if (cmd == 8) {
+    Serial.print("Turning to position ");
+    Serial.print(data, 4);
+    Serial.print(".\n");
+    turn(data);
+  }
 
 	// Reset command
 	if (process_command) {
@@ -292,7 +290,6 @@ void driveWallFollow(int distance) {
 	double posRight = 0.0;
 	double posLeft = 0.0;
 	double posAvg = 0.0;
-	double xVal = 0.0;
 	int adjustment = 0;
 	bool orientation = wallAlg->FollowingLeftOrRight();
 	
@@ -363,277 +360,6 @@ double inchesToTicks(int inches) {
 	return inches * ticksPerInch;
 }
 
-/// double turnRight(int targetHeading)
-///
-/// Author: Brandon Quinn
-/// Description: Drives the motors to perform a right turn with a given angle.
-/// Parameter:
-/// @int targetHeading - The angle to turn by (in degrees)
-/// Returns: (double) The difference between targetHeading and how far it turned.
-double turnRight(int targetHeading) {
-	M[0].resetPosition();
-	M[1].resetPosition();
-	Speed = 115;
-	int flag = 0;
-	
-	delay(500);
-	//Get initial heading from IMU
-	sensors_event_t event;
-	bno.getEvent(&event);
-	Serial.print("Starting function call\tInitial X: ");
-	xValInitial = event.orientation.x;
-	Serial.print(xValInitial, 4);
-	Serial.print("\n");
-
-	double diff = 0;
-	
-	//Setup timing
-	runningMotors = false;
-	previousTime = millis();
-	
-	while (1) {
-		// Find the difference between the current heading and the initial heading
-		diff = getDiff();
-		
-		// Turn the full angle
-		if (abs(diff)<=targetHeading-10) {
-			unsigned long currentTime = millis();
-			//Toggle motors every 50 ms
-			if (currentTime-previousTime>runTime) {
-				//If motors were running turn them off
-				if (runningMotors) {
-					M[0].run(STOP);
-					M[1].run(STOP);
-					M[0].Setpoint = 0;
-					M[1].Setpoint = 0;
-					runningMotors = false;
-					Serial.print("Current X: ");
-					Serial.print(xVal, 4);
-					Serial.print("\n");
-					previousTime = millis();
-				}
-				//If motors are off turn them on
-				else {
-					Serial.print("Current X: ");
-					Serial.print(xVal, 4);
-					Serial.print("\n");
-					M[0].run(BACKWARD);
-					M[1].run(FORWARD);
-					M[0].Setpoint = Speed;
-					M[1].Setpoint = Speed;
-					runningMotors = true;
-					previousTime = millis();
-				}
-			}
-		}
-		//Once turned the angle, shutoff the motors
-		else {
-			M[0].run(STOP);
-			M[1].run(STOP);
-			M[0].Setpoint = 0;
-			M[1].Setpoint = 0;
-			break;
-		}
-
-		if((millis()-lastMilli) >= LOOPTIME) {
-			lastMilli = millis();
-			M[0].updatePID();
-			M[1].updatePID();				 
-		}
-	}
-	delay(500);
-	diff = getDiff();
-	
-	while(1) {
-		Speed = 75;
-		while (targetHeading-abs(diff)>0.5) {
-			quickturnRight();
-			diff = getDiff();
-		}
-		while (targetHeading-abs(diff)<-0.5) {
-			quickturnLeft();
-			diff = getDiff();
-		}
-		if (abs(targetHeading-abs(diff))<=0.5) {
-			Serial.print("Current X: ");
-			Serial.print(xVal, 4);
-			Serial.print("\n");
-			break;
-		}
-	}
-	return (targetHeading-abs(diff));
-}
-
-/// turnLeft(int targetHeading)
-///
-/// Author: Brandon Quinn
-/// Description: Drives the motors to perform a left turn with a given angle.
-/// Parameter:
-/// @int targetHeading - The angle to turn by (in degrees)
-/// Returns: (double) The difference between targetHeading and how far it turned.
-double turnLeft(int targetHeading) {
-	M[0].resetPosition();
-	M[1].resetPosition();
-	Speed = 115;
-	int flag = 0;
-	
-	delay(500);
-	//Get initial heading from IMU
-	sensors_event_t event;
-	bno.getEvent(&event);
-	Serial.print("Starting function call\tInitial X: ");
-	xValInitial = event.orientation.x;
-	Serial.print(xValInitial, 4);
-	Serial.print("\n");
-	
-	double diff = 0;
-	
-	//Setup timing
-	runningMotors = false;
-	previousTime = millis();
-	
-	while (1) {
-		// Find the difference between the current heading and the initial heading
-		diff = getDiff();
-		
-		// Turn the full angle
-		if (abs(diff)<=targetHeading-10) {
-			unsigned long currentTime = millis();
-			//Toggle motors every 50 ms
-			if (currentTime-previousTime>runTime) {
-				//If motors were running turn them off
-				if (runningMotors) {
-					M[0].run(STOP);
-					M[1].run(STOP);
-					M[0].Setpoint = 0;
-					M[1].Setpoint = 0;
-					runningMotors = false;
-					Serial.print("Current X: ");
-					Serial.print(xVal, 4);
-					Serial.print("\n");
-					previousTime = millis();
-				}
-				//If motors are off turn them on
-				else {
-					Serial.print("Current X: ");
-					Serial.print(xVal, 4);
-					Serial.print("\n");
-					M[0].run(FORWARD);
-					M[1].run(BACKWARD);
-					M[0].Setpoint = Speed;
-					M[1].Setpoint = Speed;
-					runningMotors = true;
-					previousTime = millis();
-				}
-			}
-		}
-		//Once turned the angle, shutoff the motors
-		else {
-			M[0].run(STOP);
-			M[1].run(STOP);
-			M[0].Setpoint = 0;
-			M[1].Setpoint = 0;
-			break;
-		}
-
-		if((millis()-lastMilli) >= LOOPTIME) {
-			lastMilli = millis();
-			M[0].updatePID();
-			M[1].updatePID();				 
-		}
-	}
-	delay(500);
-	diff = getDiff();
-	
-	while(1) {
-		Speed = 75;
-		while (targetHeading-abs(diff)>0.5) {
-			quickturnLeft();
-			diff = getDiff();
-		}
-		while (targetHeading-abs(diff)<-0.5) {
-			quickturnRight();
-			diff = getDiff();
-		}
-		if (abs(targetHeading-abs(diff))<=0.5) {
-			break;
-		}
-	}
-	return (targetHeading-abs(diff));
-}
-
-/// double getDiff()
-///
-/// Author: Brandon Quinn
-/// Description: Gets the difference between xVal and xValInitial, with corrections.
-/// Returns: (double) The difference between xVal and xValInitial.
-double getDiff() {
-	sensors_event_t event;
-	bno.getEvent(&event);
-	xVal = event.orientation.x;
-	double difference = xVal-xValInitial;
-	//Correct the difference degrees to be less than 180
-	if (difference > 180) {
-	 difference = -360 + difference;
-	} 
-	else if (difference < -180) {
-	 difference = 360 + difference;
-	}
-	return difference;
-}
-
-/// void quickturnRight()
-///
-/// Author: Brandon Quinn
-/// Description: Uses the motors to perform a quick turn to the right.
-void quickturnRight() {
-	M[0].run(BACKWARD);
-	M[1].run(FORWARD);
-
-	sensors_event_t event;
-
-	M[0].setSpeed(75); 
-	M[1].setSpeed(75);
-	runningMotors = true;
-	delay(50);
-
-	M[0].run(STOP);
-	M[1].run(STOP);
-	M[0].setSpeed(0); 
-	M[1].setSpeed(0);
-	runningMotors = false;
-	
-	delay(500);
-	bno.getEvent(&event);
-	xVal = event.orientation.x;
-	
-}
-
-/// void quickturnLeft()
-///
-/// Author: Brandon Quinn
-/// Description: Uses the motors to perform a quick turn to the left.
-void quickturnLeft() {
-	M[0].run(FORWARD);
-	M[1].run(BACKWARD);
-
-	sensors_event_t event;
-
-	M[0].setSpeed(75); 
-	M[1].setSpeed(75);
-	runningMotors = true;
-	delay(50);
-
-	M[0].run(STOP);
-	M[1].run(STOP);
-	M[0].setSpeed(0); 
-	M[1].setSpeed(0);
-	runningMotors = false;
-	delay(500);
-	bno.getEvent(&event);
-	xVal = event.orientation.x; 
-}
-
 /// setupSensors(uint8_t value)
 ///
 /// Author: David Weil
@@ -669,6 +395,113 @@ void setupSensors(uint8_t value) {
 		}
 	}
 	return;
+}
+
+void turn(double target_heading) {
+    M[0].resetPosition();
+    M[1].resetPosition();    
+
+    // Calculate desired change in heading and motor directions
+    double diff = getDiff(target_heading);
+    int dir[2];
+    if (diff < 0) {
+        dir[0] = FORWARD;
+        dir[1] = BACKWARD;
+    } else {
+        dir[0] = BACKWARD;
+        dir[1] = FORWARD;
+    }
+    
+    // Indicate to user the intended action
+    Serial.print("Beginning to turn. Desired change in heading is ");
+    Serial.print(abs(diff), 4);
+    Serial.print((diff < 0) ? "degrees left.\n" : "degrees right.\n");
+
+    // Quickly turn to target heading until within 10 degrees
+    Speed = 50;
+    while ((diff < 0) ? diff < -10 : diff > 10) {
+        M[0].run(dir[0]);
+        M[0].Setpoint = Speed;
+        M[1].run(dir[1]);
+        M[1].Setpoint = Speed;
+
+        if((millis()-lastMilli) >= LOOPTIME) {
+          lastMilli = millis();
+          M[0].updatePID();
+          M[1].updatePID();        
+        }
+        
+        diff = getDiff(target_heading);
+    }
+    stopWheels();
+
+    // Update current heading, difference in heading, and direction
+    diff = getDiff(target_heading);
+    if (diff < 0) {
+        dir[0] = FORWARD;
+        dir[1] = BACKWARD;
+    } else {
+        dir[0] = BACKWARD;
+        dir[1] = FORWARD;
+    }
+
+    // Slowly move to target heading until within 0.5 degreses
+    Speed = 75;
+    while (abs(diff) > 0.125) {
+        // Start turning
+        M[0].run(dir[0]);
+        M[0].setSpeed(Speed);
+        M[1].run(dir[1]);
+        M[1].setSpeed(Speed);
+        delay(50);
+        stopWheels();
+        diff = getDiff(target_heading);
+        if (diff < 0) {
+            dir[0] = FORWARD;
+            dir[1] = BACKWARD;
+        } else {
+            dir[0] = BACKWARD;
+            dir[1] = FORWARD;
+        }
+    }
+
+    // Indicate to user the performed action
+    Serial.print("Finished turning. New heading is ");
+    Serial.print(heading.orientation.x, 4);
+    Serial.print(" degrees (");
+    Serial.print(heading.orientation.x - target_heading, 4);
+    Serial.print(" degrees from target).\n");
+}
+
+void stopWheels() {
+    M[0].run(STOP);
+    M[0].setSpeed(0);
+    M[1].run(STOP);
+    M[1].setSpeed(0);
+
+    long time_start = millis();
+    long M0_start = M[0].getPosition();
+    long M1_start = M[1].getPosition();
+    while (millis() - time_start < 50) {
+        if (M0_start - M[0].getPosition() != 0
+            || M1_start - M[1].getPosition() != 0)
+        {
+            M0_start = M[0].getPosition();
+            M1_start = M[1].getPosition();
+            time_start = millis();
+        }
+    }
+}
+
+double getDiff(double target_heading) {
+  bno.getEvent(&heading);
+  double output = target_heading - heading.orientation.x;
+  if (output > 180) {
+    output -= 360;
+  } else if (output < -180) {
+    output += 360;
+  }
+  return output;
 }
 
 /// TCASELECT(uint8_t pin)
