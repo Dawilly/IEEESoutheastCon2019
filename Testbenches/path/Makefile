@@ -1,6 +1,6 @@
 CPPFLAGS = -Wall -Wextra
 GPIOFLAGS = -pthread -lpigpio
-EXE = serial
+EXE = path
 
 all: $(EXE)
 
