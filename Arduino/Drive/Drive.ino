@@ -284,8 +284,6 @@ void driveDistance(int distance) {
 ///							with a given distance.
 /// Parameters:
 /// @int distance - The distance to follow the wall, in inches.
-
-/// To-do: Implement initial turn.
 void driveWallFollow(int distance) {
 	bool running = true;
 	double tickGoal = inchesToTicks(distance);
@@ -294,7 +292,6 @@ void driveWallFollow(int distance) {
 	double posAvg = 0.0;
 	double xVal = 0.0;
 	int adjustment = 0;
-	bool orientation = wallAlg->FollowingLeftOrRight();
 	
 	M[0].resetPosition();
 	M[1].resetPosition();
