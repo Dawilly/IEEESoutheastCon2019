@@ -56,24 +56,26 @@ void setup() {
   Wire.begin();
 	Speed = 100;
 
-Serial.println("Please.");
+    Serial.println("Please.");
 	delay(300);
 	irSetup();
-Serial.println("Pretty please.");
+    Serial.println("Pretty please.");
 
-  tcaselect(7);
-  Serial.println("Pretty pretty please.");
-  //Get initial heading from IMU
-  bno.setExtCrystalUse(true);
-  bno.getEvent(&heading);
-  Serial.print("Initial X: ");
-  Serial.print(heading.orientation.x, 4);
-  Serial.print("\n");
-  delay(500);
-  bno.getEvent(&heading);
-//  Serial.print("Initial X: ");
-//  Serial.print(heading.orientation.x, 4);
-//  Serial.print("\n");
+    tcaselect(7);
+    Serial.println("Pretty pretty please.");
+    //Get initial heading from IMU
+    bno.setExtCrystalUse(true);
+    bno.getEvent(&heading);
+    Serial.print("Initial X: ");
+    Serial.print(heading.orientation.x, 4);
+    Serial.print("\n");
+    delay(500);
+    bno.getEvent(&heading);
+    //  Serial.print("Initial X: ");
+    //  Serial.print(heading.orientation.x, 4);
+    //  Serial.print("\n");
+
+
 
 	// Status is HIGH when ready for commands, and LOW when processing commands
 	digitalWrite(STATUS_PIN, HIGH);
@@ -125,15 +127,11 @@ void loop() {
 //    Serial.print("Turning to position ");
 //    Serial.print(data, 4);
 //    Serial.print(".\n");
-    turn(data);
+        turn(data);
 	}
  
 	// (Command 3: Drive by time)
 	else if(cmd == 3) {
-//		Serial.print("Driving straight for ");
-//		Serial.print(data);
-//		Serial.print(" milliseconds.");
-//		Serial.print("\n");
 		driveTimed(data);
 	}
  
@@ -167,6 +165,7 @@ void loop() {
 	} else if (cmd == 7) {
       sendData();
 	}
+
 	// Reset command
 	if (process_command) {
 		cmd = 0;
