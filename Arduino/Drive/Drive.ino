@@ -53,7 +53,7 @@ Adafruit_VL53L0X frontRight = Adafruit_VL53L0X();
 void setup() {
 	Serial.begin(9600, SERIAL_8N1);
 	pinMode(STATUS_PIN, OUTPUT);
-  Wire.begin();
+    Wire.begin();
 	Speed = 100;
 
     Serial.println("Please.");
