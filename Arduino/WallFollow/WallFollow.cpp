@@ -26,23 +26,30 @@ WallFollow::WallFollow(IRSensor** sensors, bool debug = false) {
 ///
 /// Description: Performs the operations for the wall follow algorithm.
 int WallFollow::Act() {
-  int results = 0;
+	int results = 0;
 	bool needsAdjusting = checkForAdjustment(selectedSensor_0, selectedSensor_1, threshold);
 	
 	if (needsAdjusting) {
 		//Call Drive to Turn.
-		if (val0 - val1 < 0) {
+		
+		//Check if a sensor was out of range.
+		if (sensors[selectedSensor_0]->RangeStatus() == 4) {
+			//Out of range on sensor 0
+			sprintf(buf, "Sensor %d was out of range, exempting turn.\n", selectedSensor_0);
+			results = -1
+		} else if (sensors[selectedSensor_1]->RangeStatus() == 4) {
+			//Out of range on sensor 1
+			sprintf(buf, "Sensor %d was out of range, exempting turn.\n", selectedSensor_1);
+			results = -2;
+		} else if (val0 - val1 < 0) {
 			//Turn Left
 			sprintf(buf, "Adjustment is needed! Turn Left!\n");
 			results = 1;
-		} else if (val0 - val1 > 0) {
+		//} else if (val0 - val1 > 0) {
+		} else {
 			//Turn Right
 			sprintf(buf, "Adjustment is needed! Turn Right!\n");
 			results = 2;
-		} else {
-			//Wtf how?
-			sprintf(buf, "This shouldn't occur. Logically speaking.\n");
-			results = -1;
 		}
 		
 		Serial.print(buf);
@@ -123,19 +130,17 @@ void WallFollow::TCASELECT(uint8_t pin) {
 /// False - Otherwise.
 bool WallFollow::checkForAdjustment(int s0, int s1, int limit) {
 	TCASELECT(s0);
-	delay(15);
+	//delay(15);
 	val0 = sensors[s0]->readRange();
 	
 	TCASELECT(s1);
-	delay(15);
+	//delay(15);
 	val1 = sensors[s1]->readRange();
 	
 	if (debug) {
 		//printSensorData(s0);
 		//printSensorData(s1);
-		//sprintf(buf, "val0 = %d\nval1 = %d\n", val0, val1);
-		//Serial.print(buf);
-		sprintf(buf, "val0 - val1 = %d\n", (val0 - val1));
+		sprintf(buf, "val0 = %d val1 = %d (v0 - v1) = %d\n", val0, val1, (val0 - val1));
 		Serial.print(buf);
 	}
 	
@@ -159,15 +164,4 @@ void WallFollow::printSensorData(int pin) {
 		Serial.print(buf);
 	}
 	return;	
-}
-
-int WallFollow::FollowingLeftOrRight() {
-	if ((selectedSensor_0 == RightBottom || selectedSensor_0 == RightTop) &&
-		(selectedSensor_1 == RightBottom || selectedSensor_1 == RightTop)) {
-		return 1;
-	} else if ((selectedSensor_0 == LeftBottom || selectedSensor_0 == LeftTop) &&
-			   (selectedSensor_1 == LeftBottom || selectedSensor_1 == LeftTop)) {
-		return 0;
-	}
-	return -1;
 }
