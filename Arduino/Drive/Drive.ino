@@ -56,7 +56,7 @@ WallFollow* wallAlg;
 void setup() {
 	Serial.begin(9600, SERIAL_8N1);
 	pinMode(STATUS_PIN, OUTPUT);
-	Speed = 200;
+	Speed = 100;
 
 	// Setup the IMU
 	if(!bno.begin())
@@ -247,7 +247,7 @@ void driveTimed(int endTime) {
 void driveDistance(int distance) {
 	M[0].resetPosition();
 	M[1].resetPosition();
-	Speed = 200;
+	Speed = 100;
 	double tickGoal = inchesToTicks(distance);
 	while(1) {
 		double posRight = abs(M[0].getPosition());
