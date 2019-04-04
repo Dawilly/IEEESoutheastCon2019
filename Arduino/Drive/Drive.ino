@@ -131,10 +131,10 @@ void loop() {
 	}
 	// (Command 2: Turn)
 	else if(cmd == 2) {
-    Serial.print("Turning to position ");
-    Serial.print(data, 4);
-    Serial.print(".\n");
-    turn(data);
+        Serial.print("Turning to position ");
+        Serial.print(data, 4);
+        Serial.print(".\n");
+        turn(data);
 	}
 	// (Command 3: Drive by time)
 	else if(cmd == 3) {
@@ -154,8 +154,8 @@ void loop() {
 		Serial.print("Belt position is ");
 		Serial.print(B.getPosition());
 		Serial.print(".\n");
-	// (Command 4: Wall Follow [Right Side])
-	} else if (cmd == 4) {
+	// (Command 5: Wall Follow [Right Side])
+	} else if (cmd == 5) {
 		Serial.print("Following the Wall (Right Side) for ");
 		Serial.print(data);
 		Serial.print(" inches.");
