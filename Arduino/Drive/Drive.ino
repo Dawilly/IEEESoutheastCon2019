@@ -129,34 +129,23 @@ void loop() {
 		Serial.print("\n");
 		driveDistance(data); 
 	}
-	// (Command 2: Turn Right)
+	// (Command 2: Turn)
 	else if(cmd == 2) {
-		Serial.print("Turning right for ");
-		Serial.print(data);
-		Serial.print(" degrees.");
-		Serial.print("\n");
-		bno.getEvent(&heading);
-    turn((int)(heading.orientation.x + data) % 360);  
+    Serial.print("Turning to position ");
+    Serial.print(data, 4);
+    Serial.print(".\n");
+    turn(data);
 	}
-	// (Command 3: Turn left)
+	// (Command 3: Drive by time)
 	else if(cmd == 3) {
-		Serial.print("Turning left for ");
-		Serial.print(data);
-		Serial.print(" degrees.");
-		Serial.print("\n");
-		bno.getEvent(&heading);
-    turn((int)(heading.orientation.x - data) % 360);
-	}
-	// (Command 4: Drive by time)
-	else if(cmd == 4) {
 		Serial.print("Driving straight for ");
 		Serial.print(data);
 		Serial.print(" milliseconds.");
 		Serial.print("\n");
 		driveTimed(data);
 	}
-	// (Command 5: Operate the Belt)
-	else if(cmd == 5) {
+	// (Command 4: Operate the Belt)
+	else if(cmd == 4) {
 		Serial.print("Running belt action ");
 		int beltOp = (int) data;
 		Serial.print(beltOp);
@@ -165,16 +154,16 @@ void loop() {
 		Serial.print("Belt position is ");
 		Serial.print(B.getPosition());
 		Serial.print(".\n");
-	// (Command 6: Wall Follow [Right Side])
-	} else if (cmd == 6) {
+	// (Command 4: Wall Follow [Right Side])
+	} else if (cmd == 4) {
 		Serial.print("Following the Wall (Right Side) for ");
 		Serial.print(data);
 		Serial.print(" inches.");
 		Serial.print("\n");
 		wallAlg->SetSensorsToTrace(RightBottom, RightTop);
 		driveWallFollow(data);		
-	// (Command 7: Wall Follow [Left Side])
-	} else if (cmd == 7) {
+	// (Command 6: Wall Follow [Left Side])
+	} else if (cmd == 6) {
 		Serial.print("Following the Wall (Left Side) for ");
 		Serial.print(data);
 		Serial.print(" inches.");
@@ -182,13 +171,6 @@ void loop() {
 		wallAlg->SetSensorsToTrace(LeftBottom, LeftTop);
 		driveWallFollow(data);
 	}
-  // Command 8: Turn to specified absolute heading
-  else if (cmd == 8) {
-    Serial.print("Turning to position ");
-    Serial.print(data, 4);
-    Serial.print(".\n");
-    turn(data);
-  }
 
 	// Reset command
 	if (process_command) {
