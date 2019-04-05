@@ -2,15 +2,20 @@
 #include "Encoder.h"
 #include "Motors.h"
 #include <Wire.h>
+#include <math.h> 
 #include "Adafruit_Sensor.h"
 #include "Adafruit_BNO055.h"
 #include "utility/imumaths.h"
 #include "Belt.h"
-//#include "IRSensor/IRSensor.cpp"
-#include "WallFollow/WallFollow.cpp"
+extern "C" { 
+  #include "utility/twi.h"  // from Wire library, so we can do bus scanning
+}
+#include "Adafruit_VL53L0X.h"
 
 // Status pin for Raspberry Pi
 #define STATUS_PIN 36
+//Address of I2C Mux
+#define TCAADDR 0x70
 
 int Speed = 0;
 unsigned long lastMilli = 0;
@@ -20,15 +25,6 @@ double data = 0;
 
 //Set the delay between samples of the IMU
 #define BNO055_SAMPLERATE_DELAY_MS (10)
-
-// Sensors configuration (Which sensors exist at which input of the mux)
-// Example: 0x13 = 0001 0011. Sensors at SD4/SC4, SD0/SC0 and SD1/SC1
-// 0xC0 = 1100 0000
-// 0x0C = 0000 1100
-// 0xCF = 1100 1111
-#define VL53SETUP 0xCF
-// Maximum amount of sensors allowed.
-const int SIZE = 8;
 
 //Set the delay between samples of the IMU
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
@@ -44,9 +40,10 @@ Motor M[2] =
 // Belt(PWM, In1, In2, EncoderA, EncoderB)
 Belt B = {8,32,34,22,18};
 
-// Sensors and WallFollow Algorithm
-IRSensor** sensors;
-WallFollow* wallAlg;
+Adafruit_VL53L0X bottomLeft = Adafruit_VL53L0X();
+Adafruit_VL53L0X topLeft = Adafruit_VL53L0X();
+Adafruit_VL53L0X bottomRight = Adafruit_VL53L0X();
+Adafruit_VL53L0X topRight = Adafruit_VL53L0X();
 
 /// void setup()
 ///
@@ -78,12 +75,7 @@ void setup() {
 	Serial.print(heading.orientation.x, 4);
 	Serial.print("\n");
 
-	// Setup the IR Sensors
-	setupSensors(VL53SETUP);
-
-	// Setup the Algorithm(s)
-	wallAlg = new WallFollow(sensors, true);
-	wallAlg->Initialize(LeftBottom, LeftTop, 25);
+	irSetup();
 
 	// Status is HIGH when ready for commands, and LOW when processing commands
 	digitalWrite(STATUS_PIN, HIGH);
@@ -129,6 +121,7 @@ void loop() {
 		Serial.print("\n");
 		driveDistance(data); 
 	}
+ 
 	// (Command 2: Turn)
 	else if(cmd == 2) {
         Serial.print("Turning to position ");
@@ -136,6 +129,7 @@ void loop() {
         Serial.print(".\n");
         turn(data);
 	}
+ 
 	// (Command 3: Drive by time)
 	else if(cmd == 3) {
 		Serial.print("Driving straight for ");
@@ -144,6 +138,7 @@ void loop() {
 		Serial.print("\n");
 		driveTimed(data);
 	}
+ 
 	// (Command 4: Operate the Belt)
 	else if(cmd == 4) {
 		Serial.print("Running belt action ");
@@ -154,22 +149,22 @@ void loop() {
 		Serial.print("Belt position is ");
 		Serial.print(B.getPosition());
 		Serial.print(".\n");
+    
 	// (Command 5: Wall Follow [Right Side])
 	} else if (cmd == 5) {
 		Serial.print("Following the Wall (Right Side) for ");
 		Serial.print(data);
 		Serial.print(" inches.");
 		Serial.print("\n");
-		wallAlg->SetSensorsToTrace(RightBottom, RightTop);
-		driveWallFollow(data);		
+		wallFollowRight(data);
+    		
 	// (Command 6: Wall Follow [Left Side])
 	} else if (cmd == 6) {
 		Serial.print("Following the Wall (Left Side) for ");
 		Serial.print(data);
 		Serial.print(" inches.");
 		Serial.print("\n");
-		wallAlg->SetSensorsToTrace(LeftBottom, LeftTop);
-		driveWallFollow(data);
+		wallFollowLeft(data);
 	}
 
 	// Reset command
@@ -257,74 +252,263 @@ void driveDistance(int distance) {
 	}
 }
 
-/// void driveWallFollow(int distance)
-///
-/// Author: David Weil
-/// Description: Sets the motors to drive, following the wall of the arena
-///							with a given distance.
-/// Parameters:
-/// @int distance - The distance to follow the wall, in inches.
-void driveWallFollow(int distance) {
-	bool running = true;
-	double tickGoal = inchesToTicks(distance);
-	double posRight = 0.0;
-	double posLeft = 0.0;
-	double posAvg = 0.0;
-	int adjustment = 0;
-	
-	M[0].resetPosition();
-	M[1].resetPosition();
+void wallFollowRight(int distance) {
+  boolean bottomRightOutOfRange;
+  boolean topRightOutOfRange;
+  int superThreshold = 30;
+  int normalThreshold = 10;
+  
+  M[0].resetPosition();
+  M[1].resetPosition();
 
-	Speed = 100;
-	double SpeedLeft = Speed;
-	double SpeedRight = Speed;
-	
-	while(running) {
-		posRight = abs(M[0].getPosition());
-		posLeft = abs(M[1].getPosition());
-		posAvg = (posRight + posLeft) / 2.0;
-		
-		adjustment = wallAlg->Act();
-		
-		if(posAvg < tickGoal) {
-			switch(adjustment) {
-				//Stride Left
-				case 1:
-					SpeedLeft = (Speed	* 0.75);
-					SpeedRight = Speed;
-					break;
-				//Stride Right
-				case 2:
-					SpeedLeft = Speed;
-					SpeedRight = (Speed * 0.75);
-					break;
-				//Forward
-				case 0:
-				default:
-					SpeedLeft = Speed;
-					SpeedRight = Speed;
-					break;
-			}
-			M[0].run(FORWARD); //right motor
-			M[1].run(FORWARD); //left motor
-			M[0].Setpoint = SpeedRight;
-			M[1].Setpoint = SpeedLeft;
-		} else {
-			//Unrolled loop for optimization. 
-			M[0].run(STOP);
-			M[0].Setpoint = 0;
-			M[1].run(STOP);
-			M[1].Setpoint = 0;
-			running = false;
-			continue;
-		}
-		
-		if((millis()-lastMilli) >= LOOPTIME) {
-			lastMilli = millis();
-			M[0].updatePID();
-			M[1].updatePID();				 
-		}		
-	}
+  VL53L0X_RangingMeasurementData_t bottomRightMeasurement;
+  VL53L0X_RangingMeasurementData_t topRightMeasurement;
+
+  uint16_t bottomRightRange;
+  uint16_t topRightRange;
+  
+  int rightSpeed = 100;
+  int leftSpeed = 100;
+
+
+  double tickGoal = inchesToTicks(distance);
+  
+  while(1) {
+    double posRight = abs(M[0].getPosition());
+    double posLeft = abs(M[1].getPosition());
+    double posAvg = (posRight + posLeft) / 2.0;
+    if(posAvg < tickGoal) {
+      Serial.println("-------------");
+      tcaselect(3);
+      Serial.println("Reading a measurement (bottom right sensor)... ");
+      bottomRight.rangingTest(&bottomRightMeasurement, false); // pass in 'true' to get debug data printout!
+      if(bottomRightMeasurement.RangeStatus != 4) {
+        bottomRightOutOfRange = false;
+        bottomRightRange = bottomRightMeasurement.RangeMilliMeter;
+        Serial.println(bottomRightRange);
+      }
+      else {
+        bottomRightOutOfRange = true;
+      }
+
+      delay(100);
+      
+      tcaselect(2);
+      Serial.println("Reading a measurement (top right sensor)... ");
+      topRight.rangingTest(&topRightMeasurement, false); // pass in 'true' to get debug data printout!
+      if(topRightMeasurement.RangeStatus != 4) {
+        topRightOutOfRange = false;
+        topRightRange = topRightMeasurement.RangeMilliMeter;
+        Serial.println(topRightRange);
+        Serial.println("-------------");
+      }
+      else {
+        topRightOutOfRange = true;
+      }
+
+      if(!bottomRightOutOfRange && !topRightOutOfRange) {
+          //correct right  
+          if(topRightRange < bottomRightRange - normalThreshold) {
+            if(topRightRange < bottomRightRange - superThreshold) {
+              rightSpeed = 50;
+              leftSpeed = 150;
+            }
+            else {
+              rightSpeed = 50;
+              leftSpeed = 100; 
+            }
+          }
+
+          //correct left
+          else if(topRightRange > bottomRightRange + normalThreshold) {
+            if(topRightRange > bottomRightRange + superThreshold) {
+              rightSpeed = 150;
+              leftSpeed = 50;    
+            }
+            else {
+              rightSpeed = 100;
+              leftSpeed = 50;  
+            } 
+          }
+
+          //go forward
+          else {
+            rightSpeed = 150;
+            leftSpeed = 150;
+          }
+
+          M[0].run(FORWARD); //right motor
+          M[1].run(FORWARD); //left motor
+          M[0].Setpoint = rightSpeed;
+          M[1].Setpoint = leftSpeed;
+      }
+      else {
+        Serial.println("Out of Range. Stopping Algorithm.");
+        for(int j=0;j<2;j++) {
+          M[j].run(STOP);
+          M[j].Setpoint = 0;
+        }
+        break;
+      }
+    }
+    else {
+      for(int j=0;j<2;j++) {
+        M[j].run(STOP);
+        M[j].Setpoint = 0;
+      }
+      break;
+    }
+    
+    if((millis()-lastMilli) >= LOOPTIME) {
+      lastMilli = millis();
+      M[0].updatePID();
+      M[1].updatePID();         
+    }  
+  }  
+}
+
+void wallFollowLeft(int distance) {
+  boolean bottomLeftOutOfRange;
+  boolean topLeftOutOfRange;
+  int superThreshold = 30;
+  int normalThreshold = 10;
+  
+  M[0].resetPosition();
+  M[1].resetPosition();
+
+  uint16_t bottomLeftRange;
+  uint16_t topLeftRange;
+  
+  int rightSpeed = 100;
+  int leftSpeed = 100;
+
+  if(distance == 0) {    
+  }
+  double tickGoal = inchesToTicks(distance);
+  
+  while(1) {
+    double posRight = abs(M[0].getPosition());
+    double posLeft = abs(M[1].getPosition());
+    double posAvg = (posRight + posLeft) / 2.0;
+    if(posAvg < tickGoal) {
+      bottomLeftRange = getMeasurement(bottomLeft, 0);
+      if(bottomLeftRange == -1) {
+        bottomLeftOutOfRange = true;
+      }
+      else{
+        bottomLeftOutOfRange = false;
+      }
+      delay(100);
+
+      topLeftRange = (topLeft, 1);
+      if(topLeftRange == -1) {
+        topLeftOutOfRange = true;
+      }
+      else{
+        topLeftOutOfRange = false;
+      }
+      delay(100);
+      
+      if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
+          //correct right  
+          if(topLeftRange < bottomLeftRange - normalThreshold) {
+            if(topLeftRange < bottomLeftRange - superThreshold) {
+              rightSpeed = 50;
+              leftSpeed = 150;
+            }
+            else {
+              rightSpeed = 50;
+              leftSpeed = 100; 
+            }
+          }
+
+          //correct left
+          else if(topLeftRange > bottomLeftRange + normalThreshold) {
+            if(topLeftRange > bottomLeftRange + superThreshold) {
+              rightSpeed = 150;
+              leftSpeed = 50;    
+            }
+            else {
+              rightSpeed = 100;
+              leftSpeed = 50;  
+            } 
+          }
+
+          //go forward
+          else {
+            rightSpeed = 150;
+            leftSpeed = 150;
+          }
+
+          M[0].run(FORWARD); //right motor
+          M[1].run(FORWARD); //left motor
+          M[0].Setpoint = rightSpeed;
+          M[1].Setpoint = leftSpeed;
+      }
+      else {
+        Serial.println("Out of Range. Stopping Algorithm.");
+        for(int j=0;j<2;j++) {
+          M[j].run(STOP);
+          M[j].Setpoint = 0;
+        }
+        break;
+      }
+    }
+    else {
+      for(int j=0;j<2;j++) {
+        M[j].run(STOP);
+        M[j].Setpoint = 0;
+      }
+      break;
+    }
+    
+    if((millis()-lastMilli) >= LOOPTIME) {
+      lastMilli = millis();
+      M[0].updatePID();
+      M[1].updatePID();         
+    }  
+  }  
+}
+
+void rightParallelToWall() {
+  
+}
+
+void leftParallelToWall() {
+  boolean bottomLeftOutOfRange;
+  boolean topLeftOutOfRange;
+  int superThreshold = 30;
+  int normalThreshold = 10;
+  uint16_t bottomLeftRange;
+  uint16_t topLeftRange;
+  double wallAngle;
+
+  //initial position to wall
+  bottomLeftRange = getMeasurement(bottomLeft, 0);
+  if(bottomLeftRange == -1) {
+    bottomLeftOutOfRange = true;
+  }
+  else{
+    bottomLeftOutOfRange = false;
+  }
+  delay(100);
+
+  topLeftRange = (topLeft, 1);
+  if(topLeftRange == -1) {
+    topLeftOutOfRange = true;
+  }
+  else{
+    topLeftOutOfRange = false;
+  }
+  delay(100);
+  if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
+    wallAngle = calculateWallPositioning(bottomLeftRange, topLeftRange);
+  }
+  
+  while(wallAngle ) {
+    
+  }
+   
 }
 
 /// double inchesToTicks(int inches)
@@ -337,43 +521,6 @@ void driveWallFollow(int distance) {
 double inchesToTicks(int inches) {
 	double ticksPerInch = 2700.0 / CIRCUMFERENCE;
 	return inches * ticksPerInch;
-}
-
-/// setupSensors(uint8_t value)
-///
-/// Author: David Weil
-/// Description: Allocates and initalizes the VL53L0X sensors and Measurement objects.
-/// Parameter:
-/// @uint8_t value - Informs which sensors exist at which pins of the Multiplex.
-///					 See VL53SETUP defintion for detail and example.	
-///
-/// To-Do: Refactor to a SensorManager class.
-void setupSensors(uint8_t value) {
-	int i;
-	int _bit;
-	char buf[100];
-	sensors = new IRSensor*[SIZE];
-
-	for (i = 0; i < SIZE; i++) {
-			_bit = value % 2;
-			value = value / 2;
-			TCASELECT(i);
-			sensors[i] = (_bit == 1) ? new IRSensor(false) : NULL;
-			
-		if (i == RightBottom) {
-			// No offset
-		} else if (i == RightTop) {
-			// No offset
-		}
-		
-		if (sensors[i] != NULL && !sensors[i]->success) {
-			// If the sensor failed to begin. Print the error message. Then delete the instance.
-			sprintf(buf, "Failed to boot VL53L0X #%d.\n", i);
-			Serial.println(buf);
-			delete sensors[i];
-		}
-	}
-	return;
 }
 
 void turn(double target_heading) {
@@ -483,17 +630,85 @@ double getDiff(double target_heading) {
   return output;
 }
 
-/// TCASELECT(uint8_t pin)
-///
-/// Author: David Weil
-/// Description: Sets the I2C Multiplexer (TCA9548A) to change the selected channel.
-/// Parameter:
-/// @uint8_t pin - The channel to change the Multiplexer to. Valid pins are [0 to 7].
-///
-/// To-Do: Refactor to a SensorManager class or Multiplexer class.
-void TCASELECT(uint8_t pin) {
-	if (pin > 7	|| pin < 0) return;
-	Wire.beginTransmission(0x70);
-	Wire.write(1 << pin);
-	Wire.endTransmission();
+void tcaselect(uint8_t i) {
+  if (i > 7) return;
+ 
+  Wire.beginTransmission(TCAADDR);
+  Wire.write(1 << i);
+  Wire.endTransmission();  
+}
+
+void irSetup() {
+  for (uint8_t t=0; t<8; t++) {
+    tcaselect(t);
+    Serial.print("TCA Port #"); Serial.println(t);
+
+    for (uint8_t addr = 0; addr<=127; addr++) {
+      if (addr == TCAADDR) continue;
+    
+      uint8_t data;
+      if (! twi_writeTo(addr, &data, 0, 1, 1)) {
+         Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
+      }
+    }
+  }
+
+  tcaselect(0);
+  if (!bottomLeft.begin()) {
+    Serial.println(F("Failed to boot bottom left VL53L0X"));
+    while(1);
+  }
+
+  tcaselect(1);
+  if (!topLeft.begin()) {
+    Serial.println(F("Failed to boot top left VL53L0X"));
+    while(1);
+  }
+
+    tcaselect(2);
+  if (!topRight.begin()) {
+    Serial.println(F("Failed to boot top right VL53L0X"));
+    while(1);
+  }
+
+  tcaselect(3);
+  if (!bottomRight.begin()) {
+    Serial.println(F("Failed to boot bottom right VL53L0X"));
+    while(1);
+  }
+}
+
+uint16_t getMeasurement(Adafruit_VL53L0X irSensor, uint8_t channel) {
+  VL53L0X_RangingMeasurementData_t measure;
+  uint16_t range;
+  
+  tcaselect(channel);
+  
+  irSensor.rangingTest(&measure, false); // pass in 'true' to get debug data printout!
+  if(measure.RangeStatus != 4) {
+    range = measure.RangeMilliMeter;
+    return range;
+  }
+  else {
+    return -1; 
+  }  
+}
+
+double calculateWallPositioning(uint16_t bottom, uint16_t top) {
+  double a;
+  double b;
+  //distance between IR's in inches
+  double d = 3.25;
+
+  if(bottom > top){
+     a = (double) top;
+     b = (double) bottom;
+  }
+  else {
+    a = (double) bottom;
+    b = (double) top;
+  }
+
+  double theta = atan2 (b - a, d);
+  return theta * RAD_TO_DEG;
 }
