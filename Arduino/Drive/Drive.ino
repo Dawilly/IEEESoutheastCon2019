@@ -505,8 +505,26 @@ void leftParallelToWall() {
     wallAngle = calculateWallPositioning(bottomLeftRange, topLeftRange);
   }
   
-  while(wallAngle ) {
-    
+  while(wallAngle < -10 && wallAngle > 10) {
+    bottomLeftRange = getMeasurement(bottomLeft, 0);
+    if(bottomLeftRange == -1) {
+      bottomLeftOutOfRange = true;
+    }
+    else{
+      bottomLeftOutOfRange = false;
+    }
+    delay(100);
+
+    topLeftRange = (topLeft, 1);
+    if(topLeftRange == -1) {
+      topLeftOutOfRange = true;
+    }
+    else{
+      topLeftOutOfRange = false;
+    }
+    delay(100);
+
+    if(
   }
    
 }
