@@ -40,10 +40,10 @@ Motor M[2] =
 // Belt(PWM, In1, In2, EncoderA, EncoderB)
 Belt B = {8,32,34,22,18};
 
-Adafruit_VL53L0X bottomLeft = Adafruit_VL53L0X();
-Adafruit_VL53L0X topLeft = Adafruit_VL53L0X();
-Adafruit_VL53L0X bottomRight = Adafruit_VL53L0X();
-Adafruit_VL53L0X topRight = Adafruit_VL53L0X();
+Adafruit_VL53L0X backLeft = Adafruit_VL53L0X();
+Adafruit_VL53L0X frontLeft = Adafruit_VL53L0X();
+Adafruit_VL53L0X backRight = Adafruit_VL53L0X();
+Adafruit_VL53L0X frontRight = Adafruit_VL53L0X();
 
 /// void setup()
 ///
@@ -56,8 +56,7 @@ void setup() {
 	Speed = 100;
 
 	// Setup the IMU
-	if(!bno.begin())
-	{
+	if(!bno.begin()) {
 		/* There was a problem detecting the BNO055 ... check your connections */
 		Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
 		while(1);
@@ -100,14 +99,14 @@ void loop() {
 		if (!process_command) process_command = true;
 	}
 
-	if (process_command) {
-		Serial.print("Command is ");
-		Serial.print(cmd);
-		Serial.print("\n");
-		Serial.print("Data is ");
-		Serial.print(data);
-		Serial.print("\n");
-	}
+//	if (process_command) {
+//		Serial.print("Command is ");
+//		Serial.print(cmd);
+//		Serial.print("\n");
+//		Serial.print("Data is ");
+//		Serial.print(data);
+//		Serial.print("\n");
+//	}
 
 	// Update status pin for Raspberry Pi
 	digitalWrite(STATUS_PIN, (process_command) ? LOW : HIGH);
@@ -115,64 +114,66 @@ void loop() {
 	// Process command
 	// (Command 1: Drive by distance)
 	if (cmd == 1) {
-		Serial.print("Driving straight for ");
-		Serial.print(data);
-		Serial.print(" inches.");
-		Serial.print("\n");
+//		Serial.print("Driving straight for ");
+//		Serial.print(data);
+//		Serial.print(" inches.");
+//		Serial.print("\n");
 		driveDistance(data); 
 	}
  
 	// (Command 2: Turn)
 	else if(cmd == 2) {
-    Serial.print("Turning to position ");
-    Serial.print(data, 4);
-    Serial.print(".\n");
+//    Serial.print("Turning to position ");
+//    Serial.print(data, 4);
+//    Serial.print(".\n");
     turn(data);
 	}
  
 	// (Command 3: Drive by time)
 	else if(cmd == 3) {
-		Serial.print("Driving straight for ");
-		Serial.print(data);
-		Serial.print(" milliseconds.");
-		Serial.print("\n");
+//		Serial.print("Driving straight for ");
+//		Serial.print(data);
+//		Serial.print(" milliseconds.");
+//		Serial.print("\n");
 		driveTimed(data);
 	}
  
 	// (Command 4: Operate the Belt)
 	else if(cmd == 4) {
-		Serial.print("Running belt action ");
+//		Serial.print("Running belt action ");
 		int beltOp = (int) data;
-		Serial.print(beltOp);
-		Serial.print(".\n");
-		B.moveTo((BeltPosition) beltOp);
-		Serial.print("Belt position is ");
-		Serial.print(B.getPosition());
-		Serial.print(".\n");
-    
+//		Serial.print(beltOp);
+//		Serial.print(".\n");
+    B.moveTo((BeltPosition) beltOp);
+//		Serial.print("Belt position is ");
+//		Serial.print(B.getPosition());
+//		Serial.print(".\n");
+ 
 	// (Command 5: Wall Follow [Right Side])
 	} else if (cmd == 5) {
-		Serial.print("Following the Wall (Right Side) for ");
-		Serial.print(data);
-		Serial.print(" inches.");
-		Serial.print("\n");
+//		Serial.print("Following the Wall (Right Side) for ");
+//		Serial.print(data);
+//		Serial.print(" inches.");
+//		Serial.print("\n");
 		wallFollowRight(data);
     		
 	// (Command 6: Wall Follow [Left Side])
 	} else if (cmd == 6) {
-		Serial.print("Following the Wall (Left Side) for ");
-		Serial.print(data);
-		Serial.print(" inches.");
-		Serial.print("\n");
+//		Serial.print("Following the Wall (Left Side) for ");
+//		Serial.print(data);
+//		Serial.print(" inches.");
+//		Serial.print("\n");
 		wallFollowLeft(data);
+   
+	} else if (cmd == 7) {
+      sendData();
 	}
-
 	// Reset command
 	if (process_command) {
 		cmd = 0;
 		data = 0.0;
 		process_command = false;
-		Serial.print("EOL\n");
+		//Serial.print("EOL\n");
 	}
 }
 
@@ -185,15 +186,15 @@ void loop() {
 void driveTimed(int endTime) {
 	unsigned long startTime = millis();
 	while(1) {
-		Serial.print(" Millis: ");
-		Serial.print(millis());
-		Serial.print("\tstart: ");
-		Serial.print(startTime);
-		Serial.print("\tend: ");
-		Serial.print(endTime);
-		Serial.print("\tstart + end: ");
-		Serial.print(startTime + endTime);
-		Serial.print("\n");
+//		Serial.print(" Millis: ");
+//		Serial.print(millis());
+//		Serial.print("\tstart: ");
+//		Serial.print(startTime);
+//		Serial.print("\tend: ");
+//		Serial.print(endTime);
+//		Serial.print("\tstart + end: ");
+//		Serial.print(startTime + endTime);
+//		Serial.print("\n");
 		if(millis() < startTime + endTime) {
 			M[0].run(FORWARD); //right motor
 			M[1].run(BACKWARD); //left motor
@@ -253,19 +254,19 @@ void driveDistance(int distance) {
 }
 
 void wallFollowLeft(int distance) {
-  boolean bottomLeftOutOfRange;
-  boolean topLeftOutOfRange;
+  boolean backLeftOutOfRange;
+  boolean frontLeftOutOfRange;
   int superThreshold = 30;
   int normalThreshold = 10;
   
   M[0].resetPosition();
   M[1].resetPosition();
 
-  VL53L0X_RangingMeasurementData_t bottomLeftMeasurement;
-  VL53L0X_RangingMeasurementData_t topLeftMeasurement;
+  VL53L0X_RangingMeasurementData_t backLeftMeasurement;
+  VL53L0X_RangingMeasurementData_t frontLeftMeasurement;
 
-  uint16_t bottomLeftRange;
-  uint16_t topLeftRange;
+  uint16_t backLeftRange;
+  uint16_t frontLeftRange;
   
   int rightSpeed = 100;
   int leftSpeed = 100;
@@ -276,38 +277,38 @@ void wallFollowLeft(int distance) {
     double posLeft = abs(M[1].getPosition());
     double posAvg = (posRight + posLeft) / 2.0;
     if(posAvg < tickGoal) {
-      Serial.println("-------------");
+//      Serial.println("-------------");
       tcaselect(3);
-      Serial.println("Reading a measurement (bottom left sensor)... ");
-      bottomLeft.rangingTest(&bottomLeftMeasurement, false); // pass in 'true' to get debug data printout!
-      if(bottomLeftMeasurement.RangeStatus != 4) {
-        bottomLeftOutOfRange = false;
-        bottomLeftRange = bottomLeftMeasurement.RangeMilliMeter;
-        Serial.println(bottomLeftRange);
+//      Serial.println("Reading a measurement (back left sensor)... ");
+      backLeft.rangingTest(&backLeftMeasurement, false); // pass in 'true' to get debug data printout!
+      if(backLeftMeasurement.RangeStatus != 4) {
+        backLeftOutOfRange = false;
+        backLeftRange = backLeftMeasurement.RangeMilliMeter;
+//        Serial.println(backLeftRange);
       }
       else {
-        bottomLeftOutOfRange = true;
+        backLeftOutOfRange = true;
       }
 
       delay(100);
       
       tcaselect(2);
-      Serial.println("Reading a measurement (top left sensor)... ");
-      topLeft.rangingTest(&topLeftMeasurement, false); // pass in 'true' to get debug data printout!
-      if(topLeftMeasurement.RangeStatus != 4) {
-        topLeftOutOfRange = false;
-        topLeftRange = topLeftMeasurement.RangeMilliMeter;
-        Serial.println(topLeftRange);
-        Serial.println("-------------");
+//      Serial.println("Reading a measurement (front left sensor)... ");
+      frontLeft.rangingTest(&frontLeftMeasurement, false); // pass in 'true' to get debug data printout!
+      if(frontLeftMeasurement.RangeStatus != 4) {
+        frontLeftOutOfRange = false;
+        frontLeftRange = frontLeftMeasurement.RangeMilliMeter;
+//        Serial.println(frontLeftRange);
+//        Serial.println("-------------");
       }
       else {
-        topLeftOutOfRange = true;
+        frontLeftOutOfRange = true;
       }
 
-      if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
+      if(!backLeftOutOfRange && !frontLeftOutOfRange) {
           //correct right  
-          if(topLeftRange < bottomLeftRange - normalThreshold) {
-            if(topLeftRange < bottomLeftRange - superThreshold) {
+          if(frontLeftRange < backLeftRange - normalThreshold) {
+            if(frontLeftRange < backLeftRange - superThreshold) {
               rightSpeed = 100;
               leftSpeed = 150;
             }
@@ -318,8 +319,8 @@ void wallFollowLeft(int distance) {
           }
 
           //correct left
-          else if(topLeftRange > bottomLeftRange + normalThreshold) {
-            if(topLeftRange > bottomLeftRange + superThreshold) {
+          else if(frontLeftRange > backLeftRange + normalThreshold) {
+            if(frontLeftRange > backLeftRange + superThreshold) {
               rightSpeed = 150;
               leftSpeed = 50;    
             }
@@ -360,29 +361,29 @@ void wallFollowLeft(int distance) {
       }
       break;
     }
-    
-//    if((millis()-lastMilli) >= LOOPTIME) {
-//      lastMilli = millis();
-//      M[0].updatePID();
-//      M[1].updatePID();         
-//    }  
+
+    if((millis()-lastMilli) >= LOOPTIME) {
+      lastMilli = millis();
+      M[0].updatePID();
+      M[1].updatePID();         
+    }  
   }  
 }
 
 void wallFollowRight(int distance) {
-  boolean bottomRightOutOfRange;
-  boolean topRightOutOfRange;
+  boolean backRightOutOfRange;
+  boolean frontRightOutOfRange;
   int superThreshold = 30;
   int normalThreshold = 10;
   
   M[0].resetPosition();
   M[1].resetPosition();
 
-  VL53L0X_RangingMeasurementData_t bottomRightMeasurement;
-  VL53L0X_RangingMeasurementData_t topRightMeasurement;
+  VL53L0X_RangingMeasurementData_t backRightMeasurement;
+  VL53L0X_RangingMeasurementData_t frontRightMeasurement;
 
-  uint16_t bottomRightRange;
-  uint16_t topRightRange;
+  uint16_t backRightRange;
+  uint16_t frontRightRange;
   
   int rightSpeed = 100;
   int leftSpeed = 100;
@@ -393,39 +394,39 @@ void wallFollowRight(int distance) {
     double posLeft = abs(M[1].getPosition());
     double posAvg = (posRight + posLeft) / 2.0;
     if(posAvg < tickGoal) {
-      Serial.println("-------------");
+//      Serial.println("-------------");
       
       tcaselect(0);
-      Serial.println("Reading a measurement (bottom right sensor)... ");
-      bottomRight.rangingTest(&bottomRightMeasurement, false); // pass in 'true' to get debug data printout!
-      if(bottomRightMeasurement.RangeStatus != 4) {
-        bottomRightOutOfRange = false;
-        bottomRightRange = bottomRightMeasurement.RangeMilliMeter;
-        Serial.println(bottomRightRange);
+//      Serial.println("Reading a measurement (back right sensor)... ");
+      backRight.rangingTest(&backRightMeasurement, false); // pass in 'true' to get debug data printout!
+      if(backRightMeasurement.RangeStatus != 4) {
+        backRightOutOfRange = false;
+        backRightRange = backRightMeasurement.RangeMilliMeter;
+        Serial.println(backRightRange);
       }
       else {
-        bottomRightOutOfRange = true;
+        backRightOutOfRange = true;
       }
 
       delay(100);
       
       tcaselect(1);
-      Serial.println("Reading a measurement (top right sensor)... ");
-      topRight.rangingTest(&topRightMeasurement, false); // pass in 'true' to get debug data printout!
-      if(topRightMeasurement.RangeStatus != 4) {
-        topRightOutOfRange = false;
-        topRightRange = topRightMeasurement.RangeMilliMeter;
-        Serial.println(topRightRange);
-        Serial.println("-------------");
+//      Serial.println("Reading a measurement (front right sensor)... ");
+      frontRight.rangingTest(&frontRightMeasurement, false); // pass in 'true' to get debug data printout!
+      if(frontRightMeasurement.RangeStatus != 4) {
+        frontRightOutOfRange = false;
+        frontRightRange = frontRightMeasurement.RangeMilliMeter;
+//        Serial.println(frontRightRange);
+//        Serial.println("-------------");
       }
       else {
-        topRightOutOfRange = true;
+        frontRightOutOfRange = true;
       }
 
-      if(!bottomRightOutOfRange && !topRightOutOfRange) {
+      if(!backRightOutOfRange && !frontRightOutOfRange) {
           //correct right  
-          if(topRightRange < bottomRightRange - normalThreshold) {
-            if(topRightRange < bottomRightRange - superThreshold) {
+          if(frontRightRange < backRightRange - normalThreshold) {
+            if(frontRightRange < backRightRange - superThreshold) {
               rightSpeed = 150;
               leftSpeed = 50;
             }
@@ -436,8 +437,8 @@ void wallFollowRight(int distance) {
           }
 
           //correct left
-          else if(topRightRange > bottomRightRange + normalThreshold) {
-            if(topRightRange > bottomRightRange + superThreshold) {
+          else if(frontRightRange > backRightRange + normalThreshold) {
+            if(frontRightRange > backRightRange + superThreshold) {
               rightSpeed = 50;
               leftSpeed = 150;    
             }
@@ -483,65 +484,6 @@ void wallFollowRight(int distance) {
   }  
 }
 
-//void rightParallelToWall() {
-//  
-//}
-//
-//void leftParallelToWall() {
-//  boolean bottomLeftOutOfRange;
-//  boolean topLeftOutOfRange;
-//  int superThreshold = 30;
-//  int normalThreshold = 10;
-//  uint16_t bottomLeftRange;
-//  uint16_t topLeftRange;
-//  double wallAngle;
-//
-//  //initial position to wall
-//  bottomLeftRange = getMeasurement(bottomLeft, 0);
-//  if(bottomLeftRange == -1) {
-//    bottomLeftOutOfRange = true;
-//  }
-//  else{
-//    bottomLeftOutOfRange = false;
-//  }
-//  delay(100);
-//
-//  topLeftRange = (topLeft, 1);
-//  if(topLeftRange == -1) {
-//    topLeftOutOfRange = true;
-//  }
-//  else{
-//    topLeftOutOfRange = false;
-//  }
-//  delay(100);
-//  if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
-//    wallAngle = calculateWallPositioning(bottomLeftRange, topLeftRange);
-//  }
-//  
-//  while(wallAngle < -10 && wallAngle > 10) {
-//    bottomLeftRange = getMeasurement(bottomLeft, 0);
-//    if(bottomLeftRange == -1) {
-//      bottomLeftOutOfRange = true;
-//    }
-//    else{
-//      bottomLeftOutOfRange = false;
-//    }
-//    delay(100);
-//
-//    topLeftRange = (topLeft, 1);
-//    if(topLeftRange == -1) {
-//      topLeftOutOfRange = true;
-//    }
-//    else{
-//      topLeftOutOfRange = false;
-//    }
-//    delay(100);
-//
-//    if(
-//  }
-//   
-//}
-
 /// double inchesToTicks(int inches)
 ///
 /// Author: Katie McCray
@@ -570,9 +512,9 @@ void turn(double target_heading) {
     }
     
     // Indicate to user the intended action
-    Serial.print("Beginning to turn. Desired change in heading is ");
-    Serial.print(abs(diff), 4);
-    Serial.print((diff < 0) ? "degrees left.\n" : "degrees right.\n");
+//    Serial.print("Beginning to turn. Desired change in heading is ");
+//    Serial.print(abs(diff), 4);
+//    Serial.print((diff < 0) ? "degrees left.\n" : "degrees right.\n");
 
     // Quickly turn to target heading until within 10 degrees
     Speed = 50;
@@ -623,11 +565,11 @@ void turn(double target_heading) {
     }
 
     // Indicate to user the performed action
-    Serial.print("Finished turning. New heading is ");
-    Serial.print(heading.orientation.x, 4);
-    Serial.print(" degrees (");
-    Serial.print(heading.orientation.x - target_heading, 4);
-    Serial.print(" degrees from target).\n");
+//    Serial.print("Finished turning. New heading is ");
+//    Serial.print(heading.orientation.x, 4);
+//    Serial.print(" degrees (");
+//    Serial.print(heading.orientation.x - target_heading, 4);
+//    Serial.print(" degrees from target).\n");
 }
 
 void stopWheels() {
@@ -672,39 +614,39 @@ void tcaselect(uint8_t i) {
 void irSetup() {
   for (uint8_t t=0; t<8; t++) {
     tcaselect(t);
-    Serial.print("TCA Port #"); Serial.println(t);
+    //Serial.print("TCA Port #"); Serial.println(t);
 
     for (uint8_t addr = 0; addr<=127; addr++) {
       if (addr == TCAADDR) continue;
     
       uint8_t data;
       if (! twi_writeTo(addr, &data, 0, 1, 1)) {
-         Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
+         //Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
       }
     }
   }
 
   tcaselect(0);
-  if (!bottomLeft.begin()) {
-    Serial.println(F("Failed to boot bottom left VL53L0X"));
+  if (!backLeft.begin()) {
+    //Serial.println(F("Failed to boot back left VL53L0X"));
     while(1);
   }
 
   tcaselect(1);
-  if (!topLeft.begin()) {
-    Serial.println(F("Failed to boot top left VL53L0X"));
+  if (!frontLeft.begin()) {
+    //Serial.println(F("Failed to boot front left VL53L0X"));
     while(1);
   }
 
     tcaselect(2);
-  if (!topRight.begin()) {
-    Serial.println(F("Failed to boot top right VL53L0X"));
+  if (!frontRight.begin()) {
+    //Serial.println(F("Failed to boot front right VL53L0X"));
     while(1);
   }
 
   tcaselect(3);
-  if (!bottomRight.begin()) {
-    Serial.println(F("Failed to boot bottom right VL53L0X"));
+  if (!backRight.begin()) {
+    //Serial.println(F("Failed to boot back right VL53L0X"));
     while(1);
   }
 }
@@ -725,21 +667,52 @@ uint16_t getMeasurement(Adafruit_VL53L0X irSensor, uint8_t channel) {
   }  
 }
 
-double calculateWallPositioning(uint16_t bottom, uint16_t top) {
+double calculateWallPositioning(uint16_t back, uint16_t front) {
   double a;
   double b;
   //distance between IR's in inches
   double d = 3.25;
 
-  if(bottom > top){
-     a = (double) top;
-     b = (double) bottom;
+  if(back > front){
+     a = (double) front;
+     b = (double) back;
   }
   else {
-    a = (double) bottom;
-    b = (double) top;
+    a = (double) back;
+    b = (double) front;
   }
 
   double theta = atan2 (b - a, d);
   return theta * RAD_TO_DEG;
+}
+
+void sendData() {
+  //heading
+  bno.getEvent(&heading);
+  Serial.print(heading.orientation.x, 4);
+  Serial.print("\n");
+  //ir0
+  Serial.print(getMeasurement(backRight, 0));
+  Serial.print("\n");
+  //ir1
+  Serial.print(getMeasurement(frontRight, 1));
+  Serial.print("\n");
+  //ir2
+  Serial.print(getMeasurement(frontLeft, 2));
+  Serial.print("\n");
+  //ir3
+  Serial.print(getMeasurement(backLeft, 3));
+  Serial.print("\n");
+  //ir4 DNE
+  Serial.print("0");
+  Serial.print("\n");
+  //ir5 DNE
+  Serial.print("0");
+  Serial.print("\n");
+  //ir6 DNE
+  Serial.print("0");
+  Serial.print("\n");
+  //ir7 DNE
+  Serial.print("0");
+  Serial.print("\n");
 }
