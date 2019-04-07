@@ -124,10 +124,10 @@ void loop() {
  
 	// (Command 2: Turn)
 	else if(cmd == 2) {
-        Serial.print("Turning to position ");
-        Serial.print(data, 4);
-        Serial.print(".\n");
-        turn(data);
+    Serial.print("Turning to position ");
+    Serial.print(data, 4);
+    Serial.print(".\n");
+    turn(data);
 	}
  
 	// (Command 3: Drive by time)
@@ -376,14 +376,14 @@ void wallFollowLeft(int distance) {
   M[0].resetPosition();
   M[1].resetPosition();
 
+  VL53L0X_RangingMeasurementData_t bottomLeftMeasurement;
+  VL53L0X_RangingMeasurementData_t topLeftMeasurement;
+
   uint16_t bottomLeftRange;
   uint16_t topLeftRange;
   
   int rightSpeed = 100;
   int leftSpeed = 100;
-
-  if(distance == 0) {    
-  }
   double tickGoal = inchesToTicks(distance);
   
   while(1) {
@@ -391,29 +391,39 @@ void wallFollowLeft(int distance) {
     double posLeft = abs(M[1].getPosition());
     double posAvg = (posRight + posLeft) / 2.0;
     if(posAvg < tickGoal) {
-      bottomLeftRange = getMeasurement(bottomLeft, 0);
-      if(bottomLeftRange == -1) {
+      Serial.println("-------------");
+      tcaselect(3);
+      Serial.println("Reading a measurement (bottom left sensor)... ");
+      bottomLeft.rangingTest(&bottomLeftMeasurement, false); // pass in 'true' to get debug data printout!
+      if(bottomLeftMeasurement.RangeStatus != 4) {
+        bottomLeftOutOfRange = false;
+        bottomLeftRange = bottomLeftMeasurement.RangeMilliMeter;
+        Serial.println(bottomLeftRange);
+      }
+      else {
         bottomLeftOutOfRange = true;
       }
-      else{
-        bottomLeftOutOfRange = false;
-      }
-      delay(100);
 
-      topLeftRange = (topLeft, 1);
-      if(topLeftRange == -1) {
-        topLeftOutOfRange = true;
-      }
-      else{
-        topLeftOutOfRange = false;
-      }
       delay(100);
       
+      tcaselect(2);
+      Serial.println("Reading a measurement (top left sensor)... ");
+      topLeft.rangingTest(&topLeftMeasurement, false); // pass in 'true' to get debug data printout!
+      if(topLeftMeasurement.RangeStatus != 4) {
+        topLeftOutOfRange = false;
+        topLeftRange = topLeftMeasurement.RangeMilliMeter;
+        Serial.println(topLeftRange);
+        Serial.println("-------------");
+      }
+      else {
+        topLeftOutOfRange = true;
+      }
+
       if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
           //correct right  
           if(topLeftRange < bottomLeftRange - normalThreshold) {
             if(topLeftRange < bottomLeftRange - superThreshold) {
-              rightSpeed = 50;
+              rightSpeed = 100;
               leftSpeed = 150;
             }
             else {
@@ -431,6 +441,124 @@ void wallFollowLeft(int distance) {
             else {
               rightSpeed = 100;
               leftSpeed = 50;  
+            } 
+          }
+
+          //go forward
+          else {
+            rightSpeed = 150;
+            leftSpeed = 150;
+          }
+
+          M[0].run(FORWARD); //right motor
+          M[1].run(FORWARD); //left motor
+          //M[0].Setpoint = rightSpeed;
+          //M[1].Setpoint = leftSpeed;
+          M[0].setSpeed(rightSpeed);
+          M[1].setSpeed(leftSpeed);
+      }
+      else {
+        Serial.println("Out of Range. Stopping Algorithm.");
+        for(int j=0;j<2;j++) {
+          M[j].run(STOP);
+          //M[j].Setpoint = 0;
+          M[j].setSpeed(0);
+        }
+        break;
+      }
+    }
+    else {
+      for(int j=0;j<2;j++) {
+        M[j].run(STOP);
+        //M[j].Setpoint = 0;
+        M[j].setSpeed(0);
+      }
+      break;
+    }
+    
+//    if((millis()-lastMilli) >= LOOPTIME) {
+//      lastMilli = millis();
+//      M[0].updatePID();
+//      M[1].updatePID();         
+//    }  
+  }  
+}
+
+void wallFollowRight(int distance) {
+  boolean bottomRightOutOfRange;
+  boolean topRightOutOfRange;
+  int superThreshold = 30;
+  int normalThreshold = 10;
+  
+  M[0].resetPosition();
+  M[1].resetPosition();
+
+  VL53L0X_RangingMeasurementData_t bottomRightMeasurement;
+  VL53L0X_RangingMeasurementData_t topRightMeasurement;
+
+  uint16_t bottomRightRange;
+  uint16_t topRightRange;
+  
+  int rightSpeed = 100;
+  int leftSpeed = 100;
+  double tickGoal = inchesToTicks(distance);
+  
+  while(1) {
+    double posRight = abs(M[0].getPosition());
+    double posLeft = abs(M[1].getPosition());
+    double posAvg = (posRight + posLeft) / 2.0;
+    if(posAvg < tickGoal) {
+      Serial.println("-------------");
+      
+      tcaselect(0);
+      Serial.println("Reading a measurement (bottom right sensor)... ");
+      bottomRight.rangingTest(&bottomRightMeasurement, false); // pass in 'true' to get debug data printout!
+      if(bottomRightMeasurement.RangeStatus != 4) {
+        bottomRightOutOfRange = false;
+        bottomRightRange = bottomRightMeasurement.RangeMilliMeter;
+        Serial.println(bottomRightRange);
+      }
+      else {
+        bottomRightOutOfRange = true;
+      }
+
+      delay(100);
+      
+      tcaselect(1);
+      Serial.println("Reading a measurement (top right sensor)... ");
+      topRight.rangingTest(&topRightMeasurement, false); // pass in 'true' to get debug data printout!
+      if(topRightMeasurement.RangeStatus != 4) {
+        topRightOutOfRange = false;
+        topRightRange = topRightMeasurement.RangeMilliMeter;
+        Serial.println(topRightRange);
+        Serial.println("-------------");
+      }
+      else {
+        topRightOutOfRange = true;
+      }
+
+      if(!bottomRightOutOfRange && !topRightOutOfRange) {
+          //correct right  
+          if(topRightRange < bottomRightRange - normalThreshold) {
+            if(topRightRange < bottomRightRange - superThreshold) {
+              rightSpeed = 150;
+              leftSpeed = 50;
+            }
+            else {
+              rightSpeed = 100;
+              leftSpeed = 50; 
+            }
+          }
+
+          //correct left
+          else if(topRightRange > bottomRightRange + normalThreshold) {
+            if(topRightRange > bottomRightRange + superThreshold) {
+              rightSpeed = 50;
+              leftSpeed = 150;    
+            }
+            else {
+              rightSpeed = 50;
+              leftSpeed = 100;  
             } 
           }
 
@@ -470,64 +598,64 @@ void wallFollowLeft(int distance) {
   }  
 }
 
-void rightParallelToWall() {
-  
-}
-
-void leftParallelToWall() {
-  boolean bottomLeftOutOfRange;
-  boolean topLeftOutOfRange;
-  int superThreshold = 30;
-  int normalThreshold = 10;
-  uint16_t bottomLeftRange;
-  uint16_t topLeftRange;
-  double wallAngle;
-
-  //initial position to wall
-  bottomLeftRange = getMeasurement(bottomLeft, 0);
-  if(bottomLeftRange == -1) {
-    bottomLeftOutOfRange = true;
-  }
-  else{
-    bottomLeftOutOfRange = false;
-  }
-  delay(100);
-
-  topLeftRange = (topLeft, 1);
-  if(topLeftRange == -1) {
-    topLeftOutOfRange = true;
-  }
-  else{
-    topLeftOutOfRange = false;
-  }
-  delay(100);
-  if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
-    wallAngle = calculateWallPositioning(bottomLeftRange, topLeftRange);
-  }
-  
-  while(wallAngle < -10 && wallAngle > 10) {
-    bottomLeftRange = getMeasurement(bottomLeft, 0);
-    if(bottomLeftRange == -1) {
-      bottomLeftOutOfRange = true;
-    }
-    else{
-      bottomLeftOutOfRange = false;
-    }
-    delay(100);
-
-    topLeftRange = (topLeft, 1);
-    if(topLeftRange == -1) {
-      topLeftOutOfRange = true;
-    }
-    else{
-      topLeftOutOfRange = false;
-    }
-    delay(100);
-
-    if(
-  }
-   
-}
+//void rightParallelToWall() {
+//  
+//}
+//
+//void leftParallelToWall() {
+//  boolean bottomLeftOutOfRange;
+//  boolean topLeftOutOfRange;
+//  int superThreshold = 30;
+//  int normalThreshold = 10;
+//  uint16_t bottomLeftRange;
+//  uint16_t topLeftRange;
+//  double wallAngle;
+//
+//  //initial position to wall
+//  bottomLeftRange = getMeasurement(bottomLeft, 0);
+//  if(bottomLeftRange == -1) {
+//    bottomLeftOutOfRange = true;
+//  }
+//  else{
+//    bottomLeftOutOfRange = false;
+//  }
+//  delay(100);
+//
+//  topLeftRange = (topLeft, 1);
+//  if(topLeftRange == -1) {
+//    topLeftOutOfRange = true;
+//  }
+//  else{
+//    topLeftOutOfRange = false;
+//  }
+//  delay(100);
+//  if(!bottomLeftOutOfRange && !topLeftOutOfRange) {
+//    wallAngle = calculateWallPositioning(bottomLeftRange, topLeftRange);
+//  }
+//  
+//  while(wallAngle < -10 && wallAngle > 10) {
+//    bottomLeftRange = getMeasurement(bottomLeft, 0);
+//    if(bottomLeftRange == -1) {
+//      bottomLeftOutOfRange = true;
+//    }
+//    else{
+//      bottomLeftOutOfRange = false;
+//    }
+//    delay(100);
+//
+//    topLeftRange = (topLeft, 1);
+//    if(topLeftRange == -1) {
+//      topLeftOutOfRange = true;
+//    }
+//    else{
+//      topLeftOutOfRange = false;
+//    }
+//    delay(100);
+//
+//    if(
+//  }
+//   
+//}
 
 /// double inchesToTicks(int inches)
 ///
