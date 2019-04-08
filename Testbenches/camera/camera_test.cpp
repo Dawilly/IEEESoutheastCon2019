@@ -84,177 +84,146 @@ int main ( int argc,char **argv ) {
 		cv::findContours(yellow, yellow_contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 		cv::findContours(white, white_contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 
-	    if (green_contours.size() > 0) {
-		    for (int i = 0; i < green_contours.size(); i++) {
-			    epsilon = 0.01*cv::arcLength(green_contours[i], true);
-			    cv::approxPolyDP(green_contours[i], approx, epsilon, true);
-			    cv::Moments m = cv::moments(green_contours[i],true);
-			    cv::Point p(m.m10/m.m00, m.m01/m.m00);
-			    double area = cv::contourArea(approx);
-			    double perimeter = cv::arcLength(approx, true);
-			    if(area > 5000) {
-			    	drawContours(image, green_contours, -1, cv::Scalar(0,0,0), 2);
-			    	if(perimeter > 1000) {
-			    		cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    		putText(image, "green tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    	}
-			    	else{
-			    		if(approx.size() > 10) {
-			    			cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    		else {
-			    			cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    	}
-			    }
+		if (green_contours.size() > 0) {
+			for (int i = 0; i < green_contours.size(); i++) {
+				epsilon = 0.01*cv::arcLength(green_contours[i], true);
+				cv::approxPolyDP(green_contours[i], approx, epsilon, true);
+				cv::Moments m = cv::moments(green_contours[i],true);
+				cv::Point p(m.m10/m.m00, m.m01/m.m00);
+				double area = cv::contourArea(approx);
+				double perimeter = cv::arcLength(approx, true);
+				if(area > 5000) {
+					drawContours(image, green_contours, -1, cv::Scalar(0,0,0), 2);
+					if(perimeter > 1000) {
+						cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+						putText(image, "green tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					}
+					else{
+						if(approx.size() > 10) {
+							cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
+							putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						}
+						else {
+							cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+							putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						}
+					}
+				}
 			}
-	    }
+		}
 
-	     if (blue_contours.size() > 0) {
-		     for (int i = 0; i < blue_contours.size(); i++) {
-			     epsilon = 0.01*cv::arcLength(blue_contours[i], true);
-			     cv::approxPolyDP(blue_contours[i], approx, epsilon, true);
-			     cv::Moments m = moments(blue_contours[i],true);
-			     cv::Point p(m.m10/m.m00, m.m01/m.m00);
-			     double area = cv::contourArea(approx);
-			     double perimeter = cv::arcLength(approx, true);
-			     if(area > 5000) {
-			     	drawContours(image, blue_contours, -1, cv::Scalar(0,0,0), 2);
-			     	if(perimeter > 1000) {
-			     		cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
-			     		putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			     	}
-			     	else{
-			     	//	if(approx.size() > 10) {
-			     			cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			     			putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			     	//	}
-			     		/*else {
-			     			cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			     			putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			     		}*/
-			     	}
-			     }
+		 if (blue_contours.size() > 0) {
+			 for (int i = 0; i < blue_contours.size(); i++) {
+				 epsilon = 0.01*cv::arcLength(blue_contours[i], true);
+				 cv::approxPolyDP(blue_contours[i], approx, epsilon, true);
+				 cv::Moments m = moments(blue_contours[i],true);
+				 cv::Point p(m.m10/m.m00, m.m01/m.m00);
+				 double area = cv::contourArea(approx);
+				 double perimeter = cv::arcLength(approx, true);
+				 if(area > 5000) {
+					drawContours(image, blue_contours, -1, cv::Scalar(0,0,0), 2);
+					if(perimeter > 1000) {
+						cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+						putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					}
+					else{
+						cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+						putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					}
+				 }
 			 }
-	     }
+		 }
 
-	if (blue_ball_contours.size() > 0) {
-		     for (int i = 0; i < blue_ball_contours.size(); i++) {
-			     epsilon = 0.01*cv::arcLength(blue_ball_contours[i], true);
-			     cv::approxPolyDP(blue_ball_contours[i], approx, epsilon, true);
-			     cv::Moments m = moments(blue_ball_contours[i],true);
-			     cv::Point p(m.m10/m.m00, m.m01/m.m00);
-			     double area = cv::contourArea(approx);
-			     double perimeter = cv::arcLength(approx, true);
-			     if(area > 5000) {
-			     	drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
-			     	putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
-				/*if(perimeter > 1000) {
-			     		cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
-			     		putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			     	}
-			     	else{
-			     		if(approx.size() > 10) {
-			     			cout << "{Blue Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
-			     			putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			     		}
-			     		else {
-			     			cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			     			putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			     		}
-			     	}
-			     }*/
+		if (blue_ball_contours.size() > 0) {
+			 for (int i = 0; i < blue_ball_contours.size(); i++) {
+				 epsilon = 0.01*cv::arcLength(blue_ball_contours[i], true);
+				 cv::approxPolyDP(blue_ball_contours[i], approx, epsilon, true);
+				 cv::Moments m = moments(blue_ball_contours[i],true);
+				 cv::Point p(m.m10/m.m00, m.m01/m.m00);
+				 double area = cv::contourArea(approx);
+				 double perimeter = cv::arcLength(approx, true);
+				 if(area > 5000) {
+					drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
+					putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
+
+				}
 			 }
-	    	 }
-	}
+		}
 
-	  if (red_contours.size() > 0) {
-		    for (int i = 0; i < red_contours.size(); i++) {
-			    epsilon = 0.01*cv::arcLength(red_contours[i], true);
-			    cv::approxPolyDP(red_contours[i], approx, epsilon, true);
-			    cv::Moments m = cv::moments(red_contours[i],true);
-			    cv::Point p(m.m10/m.m00, m.m01/m.m00);
-			    double area = cv::contourArea(approx);
-			    double perimeter = cv::arcLength(approx, true);
-			    if(area > 5000) {
-			    	drawContours(image, red_contours, -1, cv::Scalar(0,0,0), 2);
-			    	if(perimeter > 1000) {
-			    		cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    		putText(image, "red tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    	}
-			    	else{
-			    		if(approx.size() > 10) {
-			    			cout << "{Red Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    		else {
-			    			cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    	}
-			    }
+		if (red_contours.size() > 0) {
+			for (int i = 0; i < red_contours.size(); i++) {
+				epsilon = 0.01*cv::arcLength(red_contours[i], true);
+				cv::approxPolyDP(red_contours[i], approx, epsilon, true);
+				cv::Moments m = cv::moments(red_contours[i],true);
+				cv::Point p(m.m10/m.m00, m.m01/m.m00);
+				double area = cv::contourArea(approx);
+				double perimeter = cv::arcLength(approx, true);
+				if(area > 5000) {
+					drawContours(image, red_contours, -1, cv::Scalar(0,0,0), 2);
+					if(perimeter > 1000) {
+						cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+						putText(image, "red tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					}
+					else{
+						if(approx.size() > 10) {
+							cout << "{Red Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
+							putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						}
+						else {
+							cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+							putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						}
+					}
+				}
 			}
-	    }
+		}
 
 
-	 if (yellow_contours.size() > 0) {
-		    for (int i = 0; i < yellow_contours.size(); i++) {
-			    epsilon = 0.01*cv::arcLength(yellow_contours[i], true);
-			    cv::approxPolyDP(yellow_contours[i], approx, epsilon, true);
-			    cv::Moments m = cv::moments(yellow_contours[i],true);
-			    cv::Point p(m.m10/m.m00, m.m01/m.m00);
-			    double area = cv::contourArea(approx);
-			    double perimeter = cv::arcLength(approx, true);
-			    if(area > 5000) {
-			    	drawContours(image, yellow_contours, -1, cv::Scalar(0,0,0), 2);
-			    	if(perimeter > 1000) {
-			    		cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    		putText(image, "yellow tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    	}
-			    	else{
-			    		if(approx.size() > 10) {
-			    			cout << "{Yellow Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "yellow ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    		else {
-			    			cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    	}
-			    }
+		if (yellow_contours.size() > 0) {
+			for (int i = 0; i < yellow_contours.size(); i++) {
+				epsilon = 0.01*cv::arcLength(yellow_contours[i], true);
+				cv::approxPolyDP(yellow_contours[i], approx, epsilon, true);
+				cv::Moments m = cv::moments(yellow_contours[i],true);
+				cv::Point p(m.m10/m.m00, m.m01/m.m00);
+				double area = cv::contourArea(approx);
+				double perimeter = cv::arcLength(approx, true);
+				if(area > 5000) {
+					drawContours(image, yellow_contours, -1, cv::Scalar(0,0,0), 2);
+					if(perimeter > 1000) {
+						cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+						putText(image, "yellow tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					}
+					else{
+						if(approx.size() > 10) {
+							cout << "{Yellow Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
+							putText(image, "yellow ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						}
+						else {
+							cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+							putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						}
+					}
+				}
 			}
-	    }
+		}
 
-	  if (white_contours.size() > 0) {
-		    for (int i = 0; i < white_contours.size(); i++) {
-			    epsilon = 0.01*cv::arcLength(white_contours[i], true);
-			    cv::approxPolyDP(white_contours[i], approx, epsilon, true);
-			    cv::Moments m = cv::moments(white_contours[i],true);
-			    cv::Point p(m.m10/m.m00, m.m01/m.m00);
-			    double area = cv::contourArea(approx);
-			    double perimeter = cv::arcLength(approx, true);
-			    if(area > 5000) {
-			    	drawContours(image, white_contours, -1, cv::Scalar(0,0,0), 2);
-			    	if(perimeter > 1000) {
-			    		cout << "{White Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    		putText(image, "white tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    	}
-			    	/*else{
-			    		if(approx.size() > 10) {
-			    			cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    		else {
-			    			cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-			    			putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-			    		}
-			    	}*/
-			    }
+		if (white_contours.size() > 0) {
+			for (int i = 0; i < white_contours.size(); i++) {
+				epsilon = 0.01*cv::arcLength(white_contours[i], true);
+				cv::approxPolyDP(white_contours[i], approx, epsilon, true);
+				cv::Moments m = cv::moments(white_contours[i],true);
+				cv::Point p(m.m10/m.m00, m.m01/m.m00);
+				double area = cv::contourArea(approx);
+				double perimeter = cv::arcLength(approx, true);
+				if(area > 5000) {
+					drawContours(image, white_contours, -1, cv::Scalar(0,0,0), 2);
+					if(perimeter > 1000) {
+						cout << "{White Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+						putText(image, "white tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					}
+				}
 			}
-	}	    
-
+		}	    
 
 		cv::imshow("Camera Stream", image);
 		if(cv::waitKey(5) >= 0) {
