@@ -53,28 +53,27 @@ Adafruit_VL53L0X frontRight = Adafruit_VL53L0X();
 void setup() {
 	Serial.begin(9600, SERIAL_8N1);
 	pinMode(STATUS_PIN, OUTPUT);
+  Wire.begin();
 	Speed = 100;
 
-	// Setup the IMU
-	if(!bno.begin()) {
-		/* There was a problem detecting the BNO055 ... check your connections */
-		Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-		while(1);
-	}
+Serial.println("Please.");
 	delay(300);
-	//Get initial heading from IMU
-	bno.setExtCrystalUse(true);
-	bno.getEvent(&heading);
-	Serial.print("Initial X: ");
-	Serial.print(heading.orientation.x, 4);
-	Serial.print("\n");
-	delay(500);
-	bno.getEvent(&heading);
-	Serial.print("Initial X: ");
-	Serial.print(heading.orientation.x, 4);
-	Serial.print("\n");
-
 	irSetup();
+Serial.println("Pretty please.");
+
+  tcaselect(7);
+  Serial.println("Pretty pretty please.");
+  //Get initial heading from IMU
+  bno.setExtCrystalUse(true);
+  bno.getEvent(&heading);
+  Serial.print("Initial X: ");
+  Serial.print(heading.orientation.x, 4);
+  Serial.print("\n");
+  delay(500);
+  bno.getEvent(&heading);
+//  Serial.print("Initial X: ");
+//  Serial.print(heading.orientation.x, 4);
+//  Serial.print("\n");
 
 	// Status is HIGH when ready for commands, and LOW when processing commands
 	digitalWrite(STATUS_PIN, HIGH);
@@ -268,8 +267,8 @@ void wallFollowLeft(int distance) {
   uint16_t backLeftRange;
   uint16_t frontLeftRange;
   
-  int rightSpeed = 100;
-  int leftSpeed = 100;
+  int rightSpeed = 150;
+  int leftSpeed = 150;
   double tickGoal = inchesToTicks(distance);
   
   while(1) {
@@ -309,24 +308,24 @@ void wallFollowLeft(int distance) {
           //correct right  
           if(frontLeftRange < backLeftRange - normalThreshold) {
             if(frontLeftRange < backLeftRange - superThreshold) {
-              rightSpeed = 100;
-              leftSpeed = 150;
+              rightSpeed = 150;
+              leftSpeed = 200;
             }
             else {
-              rightSpeed = 50;
-              leftSpeed = 100; 
+              rightSpeed = 100;
+              leftSpeed = 150; 
             }
           }
 
           //correct left
           else if(frontLeftRange > backLeftRange + normalThreshold) {
             if(frontLeftRange > backLeftRange + superThreshold) {
-              rightSpeed = 150;
-              leftSpeed = 50;    
+              rightSpeed = 200;
+              leftSpeed = 100;    
             }
             else {
-              rightSpeed = 100;
-              leftSpeed = 50;  
+              rightSpeed = 150;
+              leftSpeed = 100;  
             } 
           }
 
@@ -338,13 +337,13 @@ void wallFollowLeft(int distance) {
 
           M[0].run(FORWARD); //right motor
           M[1].run(FORWARD); //left motor
-          //M[0].Setpoint = rightSpeed;
-          //M[1].Setpoint = leftSpeed;
-          M[0].setSpeed(rightSpeed);
-          M[1].setSpeed(leftSpeed);
+          M[0].Setpoint = rightSpeed;
+          M[1].Setpoint = leftSpeed;
+//          M[0].setSpeed(rightSpeed);
+//          M[1].setSpeed(leftSpeed);
       }
       else {
-        Serial.println("Out of Range. Stopping Algorithm.");
+//        Serial.println("Out of Range. Stopping Algorithm.");
         for(int j=0;j<2;j++) {
           M[j].run(STOP);
           //M[j].Setpoint = 0;
@@ -385,8 +384,8 @@ void wallFollowRight(int distance) {
   uint16_t backRightRange;
   uint16_t frontRightRange;
   
-  int rightSpeed = 100;
-  int leftSpeed = 100;
+  int rightSpeed = 150;
+  int leftSpeed = 150;
   double tickGoal = inchesToTicks(distance);
   
   while(1) {
@@ -402,7 +401,7 @@ void wallFollowRight(int distance) {
       if(backRightMeasurement.RangeStatus != 4) {
         backRightOutOfRange = false;
         backRightRange = backRightMeasurement.RangeMilliMeter;
-        Serial.println(backRightRange);
+//        Serial.println(backRightRange);
       }
       else {
         backRightOutOfRange = true;
@@ -427,24 +426,24 @@ void wallFollowRight(int distance) {
           //correct right  
           if(frontRightRange < backRightRange - normalThreshold) {
             if(frontRightRange < backRightRange - superThreshold) {
-              rightSpeed = 150;
-              leftSpeed = 50;
+              rightSpeed = 200;
+              leftSpeed = 100;
             }
             else {
-              rightSpeed = 100;
-              leftSpeed = 50; 
+              rightSpeed = 150;
+              leftSpeed = 100; 
             }
           }
 
           //correct left
           else if(frontRightRange > backRightRange + normalThreshold) {
             if(frontRightRange > backRightRange + superThreshold) {
-              rightSpeed = 50;
-              leftSpeed = 150;    
+              rightSpeed = 100;
+              leftSpeed = 200;    
             }
             else {
-              rightSpeed = 50;
-              leftSpeed = 100;  
+              rightSpeed = 100;
+              leftSpeed = 150;  
             } 
           }
 
@@ -460,7 +459,7 @@ void wallFollowRight(int distance) {
           M[1].Setpoint = leftSpeed;
       }
       else {
-        Serial.println("Out of Range. Stopping Algorithm.");
+//        Serial.println("Out of Range. Stopping Algorithm.");
         for(int j=0;j<2;j++) {
           M[j].run(STOP);
           M[j].Setpoint = 0;
@@ -593,7 +592,10 @@ void stopWheels() {
 }
 
 double getDiff(double target_heading) {
+  tcaselect(7);
   bno.getEvent(&heading);
+//  Serial.print("heading: ");
+//  Serial.println(heading.orientation.x);
   double output = target_heading - heading.orientation.x;
   if (output > 180) {
     output -= 360;
@@ -621,32 +623,40 @@ void irSetup() {
     
       uint8_t data;
       if (! twi_writeTo(addr, &data, 0, 1, 1)) {
-         //Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
+         Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
       }
     }
   }
 
   tcaselect(0);
-  if (!backLeft.begin()) {
-    //Serial.println(F("Failed to boot back left VL53L0X"));
+  if (!backRight.begin()) {
+    Serial.println(F("Failed to boot back right VL53L0X"));
     while(1);
   }
 
   tcaselect(1);
-  if (!frontLeft.begin()) {
-    //Serial.println(F("Failed to boot front left VL53L0X"));
+  if (!frontRight.begin()) {
+    Serial.println(F("Failed to boot front right VL53L0X"));
     while(1);
   }
 
     tcaselect(2);
-  if (!frontRight.begin()) {
-    //Serial.println(F("Failed to boot front right VL53L0X"));
+  if (!frontLeft.begin()) {
+    Serial.println(F("Failed to boot front left VL53L0X"));
     while(1);
   }
 
   tcaselect(3);
-  if (!backRight.begin()) {
-    //Serial.println(F("Failed to boot back right VL53L0X"));
+  if (!backLeft.begin()) {
+    Serial.println(F("Failed to boot back left VL53L0X"));
+    while(1);
+  }
+
+  // Setup the IMU
+  tcaselect(7);
+  if(!bno.begin()) {
+    /* There was a problem detecting the BNO055 ... check your connections */
+    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
 }
@@ -688,6 +698,7 @@ double calculateWallPositioning(uint16_t back, uint16_t front) {
 
 void sendData() {
   //heading
+  tcaselect(7);
   bno.getEvent(&heading);
   Serial.print(heading.orientation.x, 4);
   Serial.print("\n");
@@ -712,7 +723,6 @@ void sendData() {
   //ir6 DNE
   Serial.print("0");
   Serial.print("\n");
-  //ir7 DNE
   Serial.print("0");
   Serial.print("\n");
 }
