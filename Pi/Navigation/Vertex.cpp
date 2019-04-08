@@ -6,7 +6,7 @@ Vertex::Vertex(double x, double y) : adjacencyList(){
     this->x = x;
     this->y = y;
     this->distance = -1.0;
-    this->previous = NULL;
+    this->previous = nullptr;
 }
 
 Vertex::~Vertex() {}

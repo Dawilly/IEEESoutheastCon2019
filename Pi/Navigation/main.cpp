@@ -20,7 +20,7 @@ inline double readingsToInches(double r1, double r2) {
 
 using namespace std;
 
-vector<double> correct(Vertex *v, double heading, vector<double> readings);
+vector<double> correct(vector<double> point, double heading, vector<double> readings);
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
 void readArduinoData(Serial8N1 *arduino, double *heading,
@@ -43,10 +43,10 @@ int main(int argc, char **argv) {
 
     // Pass function to handle interrupt at rising and falling edges
     gpioSetISRFuncEx(PIN, EITHER_EDGE, 0, handle_interrupt, &arduino_ready);
-    
+
     // Open serial port and use IRs to be parallel with left wall
     Serial8N1 arduino(argv[1], 9600);
-    
+
     // Create a graph of the playing field
     ifstream graph_file(argv[2], ifstream::in);
     vector<Vertex *> graph = makeGraph(&graph_file);
@@ -56,21 +56,20 @@ int main(int argc, char **argv) {
     ifstream waypoints_file(argv[3], ifstream::in);
     vector<Vertex *> waypoints;
     while (vertexPending(&waypoints_file))
-        waypoints.push_back(makeVertex(&waypoints_file, &graph);
+        waypoints.push_back(makeVertex(&waypoints_file, &graph));
     waypoints_file.close();
-    
+
     // Initialize IMU heading and IR readings
     double heading;
     vector<double> readings(8, 0.0);
-    readArduinoData(&arduino, &heading, &readings);
-    
+
     // Initialize position and begin iterating through waypoints
     Vertex *position = waypoints[0];
     for (vector<Vertex *>::iterator w = waypoints.begin() + 1;
             w != waypoints.end(); w++)
     {
         // TO-DO: Handle irregular operation
-        
+
         // Use Dijikstra's algorithm to determine shortest path
         Dijikstra(graph, position);
         deque<Vertex *> path = shortestPath(position, (*w));
@@ -81,25 +80,39 @@ int main(int argc, char **argv) {
         for (; !path.empty(); path.pop_front()) {
             // Get the target vertex
             end = path.front();
-            
+
+            // Update IMU heading and IR readings
+            readArduinoData(&arduino, &heading, &readings);
+
+            // Initialize spatial point and correct with arduino data
+            double tmp[] = {start->getX(), start->getY()};
+            vector<double> point(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
+            point = correct(point, heading, readings);
+
             // Calculate and perform a turn command
-            vector<double> point = correct(start, heading, readings);
             string command = makeTurnCommand(point, end, &heading);
+            cout << "Command is " << command << "." << endl;
             arduino.write(command);
             arduino_ready = false;
             while(arduino_ready != true);
-            
+
+            // Update IMU heading and IR readings
+            readArduinoData(&arduino, &heading, &readings);
+
+            // Update spatial point with arduino data
+            point = correct(point, heading, readings);
+
             // Calculate and perform a drive command
             command = makeDriveCommand(point, end, heading);
+            cout << "Command is " << command << "." << endl;
             arduino.write(command);
             arduino_ready = false;
             while(arduino_ready != true);
-        
-            // Update IMU heading, IR readings, and start
-            readArduinoData(&arduino, &heading, &readings);
+
+            // Update start
             start = end;
         }
-        
+
         // Update the position
         position = (*w);
     }
@@ -110,61 +123,54 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-vector<double> correct(Vertex *v, double heading, vector<double> readings) {
-    double x, y;
+vector<double> correct(vector<double> point, double heading, vector<double> readings) {
     // Direction is up
     if ((heading > 355.0 && heading < 360.0) ||
             (heading > 0.0 && heading < 5.0))
     {
-        x = (v->getX() > 48.5) ?
-            (97.0 - readingsToInches(readings[4], readings[5]))
-            : (readingsToInches(readings[0], readings[1]));
-        y = (v->getY() > 48.5) ?
-            (97.0 - readingsToInches(readings[2], readings[3]))
-            : (readingsToInches(readings[6], readings[7]));
+        point[0] = (point[0] > 48.5) ?
+            (97.0 - readingsToInches(readings[0], readings[1]))
+            : (readingsToInches(readings[2], readings[3]));
+        //point[1] = (point[1] > 48.5) ?
+            //(97.0 - readingsToInches(readings[2], readings[3]))
+            //: (readingsToInches(readings[6], readings[7]));
     }
     // Direction is down
     else if (heading > 175.0 && heading < 185.0) {
-        x = (v->getX() > 48.5) ?
-            (97.0 - readingsToInches(readings[0], readings[1])) 
-            : (readingsToInches(readings[4], readings[5]));
-        y = (v->getY() > 48.5) ?
-            (97.0 - readingsToInches(readings[6], readings[7]))
-            : (readingsToInches(readings[2], readings[3]));
+        point[0] = (point[0] > 48.5) ?
+            (97.0 - readingsToInches(readings[2], readings[3]))
+            : (readingsToInches(readings[0], readings[1]));
+        //point[1] = (point[1] > 48.5) ?
+            //(97.0 - readingsToInches(readings[6], readings[7]))
+            //: (readingsToInches(readings[2], readings[3]));
     }
     // Direction is left
     else if (heading > 265.0 && heading < 275.0) {
-        x = (v->getX() > 48.5) ?
-            (97.0 - readingsToInches(readings[6], readings[7]))
+        //point[0] = (point[0] > 48.5) ?
+            //(97.0 - readingsToInches(readings[6], readings[7]))
+            //: (readingsToInches(readings[2], readings[3]));
+        point[1] = (point[1] > 48.5) ?
+            (97.0 - readingsToInches(readings[0], readings[1]))
             : (readingsToInches(readings[2], readings[3]));
-        y = (v->getY() > 48.5) ?
-            (97.0 - readingsToInches(readings[4], readings[5]))
-            : (readingsToInches(readings[0], readings[1]));
     }
     // Direction is right
     else if (heading > 85.0 && heading < 95.0) {
-        x = (v->getX() > 48.5) ?
+        //x = (point[0] > 48.5) ?
+            //(97.0 - readingsToInches(readings[2], readings[3]))
+            //: (readingsToInches(readings[6], readings[7]));
+        point[1] = (point[1] > 48.5) ?
             (97.0 - readingsToInches(readings[2], readings[3]))
-            : (readingsToInches(readings[6], readings[7]));
-        y = (v->getY() > 48.5) ?
-            (97.0 - readingsToInches(readings[0], readings[1]))
-            : (readingsToInches(readings[4], readings[5]));
+            : (readingsToInches(readings[0], readings[1]));
     }
-    // Otherwise, just use the vertex values
-    else {
-        x = v->getX();
-        y = v->getY();
-    }
+    // Otherwise, just use original point values (do nothing)
 
-    int tmp[] = {x, y};
-    vector<double> point(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
     return point;
 }
 
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading) {
     double delta_x = end->getX() - point[0];
     double delta_y = end->getY() - point[1];
-    
+
     // Edge case to avoid dividing by zero
     if (delta_x == 0.0) {
         (*heading) = (delta_y > 0.0) ? 0.0 : 180.0;
@@ -186,7 +192,7 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
     //  1 - Drive straight,
     //  5 - Wall-follow right, or
     //  6 - Wall-follow left
-    
+
     int cmd;
     // Direction is up
     if ((heading > 355.0 && heading < 360.0) ||
@@ -210,11 +216,11 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
     else {
         cmd = 1;
     }
-    
+
     // Calculate the distance to drive
     double distance = sqrt(pow(end->getX() - point[0], 2)
             + pow(end->getY() - point[1], 2));
-    
+
     return to_string(cmd) + ' ' + to_string(distance);
 }
 
@@ -225,7 +231,7 @@ void readArduinoData(Serial8N1 *arduino, double *heading,
     arduino->write("7 0.0");
     arduino_ready = false;
     while(arduino_ready != true);
-    
+
     // Read received data and update IMU heading and IR readings
     (*heading) = arduino->readReal();
     for (vector<double>::iterator r = readings->begin(); r != readings->end();

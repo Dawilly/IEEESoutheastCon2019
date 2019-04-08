@@ -30,5 +30,5 @@ double Edge::getWeight() {return this->weight;}
 Vertex *Edge::getNeighbor(Vertex *v) {
     if (this->a == v) return this->b;
     if (this->b == v) return this->a;
-    return NULL;
+    return nullptr;
 }
