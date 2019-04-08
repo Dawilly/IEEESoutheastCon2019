@@ -1,7 +1,7 @@
 CPPFLAGS = -Wall -Wextra
 GPIOFLAGS = -pthread -lpigpio
 OBJ = Dijikstra.o Graph.o Edge.o Vertex.o Serial8N1.o
-EXE = dijikstra
+EXE = navigation
 
 all: $(EXE)
 
