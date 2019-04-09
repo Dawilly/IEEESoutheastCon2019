@@ -10,10 +10,28 @@
 #include "opencv2/imgproc.hpp"
 using namespace std;
 
-void cameraSetup(raspicam::RaspiCam_Cv &Camera);
-void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]);
+extern bool stop_camera;
+extern bool debris_detected;
+extern int debris_collected;
 
-int main ( int argc,char **argv ) {
+void turnCameraOn() {
+	//doing it using raspbery pi camera API
+	raspicam::RaspiCam_Cv Camera;
+	cameraSetup(Camera);
+
+	cout <<"Connecting to camera" << endl;
+	if(!Camera.open()) {
+		cout << "Oops! Error opening camera." << endl;
+		return 0;
+	}
+	cout << "Connected to camera = " << Camera.getId() << endl;
+}
+
+void turnCameraOff() {
+	Camera.release();
+}
+
+void findDebris() {
 	//in order of {hue, saturation, value}
 	int green_lower[3] = {45,100,80};
 	int green_upper [3]= {84,255,255};
@@ -34,17 +52,6 @@ int main ( int argc,char **argv ) {
 	int white_lower[3] = {0,0,255-white_sensitivity};
 	int white_upper[3] = {255,white_sensitivity,255};
 
-	//doing it using raspbery pi camera API
-	raspicam::RaspiCam_Cv Camera;
-	cameraSetup(Camera);
-
-	cout <<"Connecting to camera" << endl;
-	if(!Camera.open()) {
-		cout << "Oops! Error opening camera." << endl;
-		return 0;
-	}
-	cout << "Connected to camera = " << Camera.getId() << endl;
-
 	cv::Mat image, hsv, blurred;
 	cv::Mat green, blue, blue_ball, red, yellow, white;
 
@@ -53,16 +60,17 @@ int main ( int argc,char **argv ) {
 	vector<vector<cv::Point>>blue_contours;
 	vector<vector<cv::Point>>red_contours;
 	vector<vector<cv::Point>>yellow_contours;
-        vector<vector<cv::Point>>white_contours;
-        vector<cv::Vec4i> hierarchy;
+	vector<vector<cv::Point>>white_contours;
+	vector<cv::Vec4i> hierarchy;
 
-        vector<cv::Point> approx;
+	vector<cv::Point> approx;
 
-        double epsilon;
+	double epsilon;
+	
+	turnCamera();
 
 	cout << "Capturing" << endl;
 
-	//maybe change to while(!3MinutesPassed) ?
 	while(1) {
 		Camera.grab();
 		Camera.retrieve(image);
@@ -102,10 +110,16 @@ int main ( int argc,char **argv ) {
 						if(approx.size() > 10) {
 							cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+							debris_detected = true;
+							debris[debris_collected].type = 0;
+							debris[debris_collected].color = "green";
 						}
 						else {
 							cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+							debris_detected = true;
+							debris[debris_collected].type = 1;
+							debris[debris_collected].color = "green";
 						}
 					}
 				}
@@ -129,6 +143,9 @@ int main ( int argc,char **argv ) {
 					else{
 						cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+						debris_detected = true;
+						debris[debris_collected].type = 1;
+						debris[debris_collected].color = "blue";
 					}
 				 }
 			 }
@@ -145,7 +162,9 @@ int main ( int argc,char **argv ) {
 				 if(area > 5000) {
 					drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
 					putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
-
+					debris_detected = true;
+					debris[debris_collected].type = 0;
+					debris[debris_collected].color = "blue";
 				}
 			 }
 		}
@@ -168,10 +187,16 @@ int main ( int argc,char **argv ) {
 						if(approx.size() > 10) {
 							cout << "{Red Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+							debris_detected = true;
+							debris[debris_collected].type = 0;
+							debris[debris_collected].color = "red";
 						}
 						else {
 							cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+							debris_detected = true;
+							debris[debris_collected].type = 1;
+							debris[debris_collected].color = "red";
 						}
 					}
 				}
@@ -197,10 +222,16 @@ int main ( int argc,char **argv ) {
 						if(approx.size() > 10) {
 							cout << "{Yellow Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "yellow ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+							debris_detected = true;
+							debris[debris_collected].type = 0;
+							debris[debris_collected].color = "yellow";
 						}
 						else {
 							cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+							debris_detected = true;
+							debris[debris_collected].type = 1;
+							debris[debris_collected].color = "yellow";
 						}
 					}
 				}
@@ -226,24 +257,22 @@ int main ( int argc,char **argv ) {
 		}	    
 
 		cv::imshow("Camera Stream", image);
-		if(cv::waitKey(5) >= 0) {
+		if(stopCamera) {
 			break;
 		}
 	}
-
-
-	Camera.release();
-	return 0;
+	
+	turnCameraOff();
 }
 
 void cameraSetup(raspicam::RaspiCam_Cv &Camera) {
 	Camera.set ( cv::CAP_PROP_FRAME_WIDTH,  640.0 );
-        Camera.set ( cv::CAP_PROP_FRAME_HEIGHT, 480.0 );
-        Camera.set ( cv::CAP_PROP_BRIGHTNESS, 50.0 );
-        Camera.set ( cv::CAP_PROP_CONTRAST , 50.0 );
-        Camera.set ( cv::CAP_PROP_SATURATION, 50.0 );
-        Camera.set ( cv::CAP_PROP_GAIN, 50.0 );
-        Camera.set ( cv::CAP_PROP_FPS, 32.0 );
+	Camera.set ( cv::CAP_PROP_FRAME_HEIGHT, 480.0 );
+	Camera.set ( cv::CAP_PROP_BRIGHTNESS, 50.0 );
+	Camera.set ( cv::CAP_PROP_CONTRAST , 50.0 );
+	Camera.set ( cv::CAP_PROP_SATURATION, 50.0 );
+	Camera.set ( cv::CAP_PROP_GAIN, 50.0 );
+	Camera.set ( cv::CAP_PROP_FPS, 32.0 );
 }
 
 void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]) {
