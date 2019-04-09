@@ -33,18 +33,15 @@ using namespace std;
 
 vector<double> correct(vector<double> point, double heading, vector<double> readings);
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
-void sendDriveCommand(string command,vector<double> point, Vertex *end, double heading);
+void sendDriveCommand(string command,vector<double> point, Vertex *end, 
+		      double heading, vector<bool> debris_objects, 
+		      Serial8N1 &arduino, vector<double> readings);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings);
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag);
 void cameraSetup(raspicam::RaspiCam_Cv &Camera);
 void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]);
-
-struct objects {
-    int type; //0 == ball, 1 == block
-    string color;
-} debris[12];
 
 bool arduino_ready = true;
 
@@ -137,7 +134,7 @@ int main(int argc, char **argv) {
 	    // Calculate and perform a drive command
 	    command = makeDriveCommand(point, end, heading);
 	    cout << "Command is " << command << "." << endl;
-	    sendDriveCommand(command, point, end, heading);
+	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings);
 
             // Update start
             start = end;
@@ -196,12 +193,14 @@ vector<double> correct(vector<double> point, double heading, vector<double> read
     return point;
 }
 
-void sendDriveCommand(string command, vector<double> point, Vertex *end, double heading) {
-    bool debris_detected;
+void sendDriveCommand(string command, vector<double> point, Vertex *end, double heading, 
+		      vector<bool> debris_objects, Serial8N1 &arduino, vector<double> readings) {
     arduino.write(command);
     arduino_ready = false;
+    fill(debris_objects.begin(), debris_objects.end(), false);
+    raspicam::RaspiCam_Cv Camera = turnCameraOn();
     while(arduino_ready != true){
-	cameraIteration(debris_objects);
+	cameraIteration(debris_objects, Camera);
 	if(find(debris_objects.begin(), debris_objects.end(), true) != debris_objects.end()) {
 	    //debris_objects contains true => there is debris in front of us
 	    string new_command = "4 1";
@@ -219,10 +218,10 @@ void sendDriveCommand(string command, vector<double> point, Vertex *end, double 
 	    // Calculate and perform a drive command
 	    command = makeDriveCommand(point, end, heading);
 	    
-	    sendDriveCommand(command, point, end, heading);
+	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings);
 	}
     }
-    turnCameraOff();
+    turnCameraOff(Camera);
 }
 
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading) {
@@ -282,9 +281,7 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
     return to_string(cmd) + ' ' + to_string(distance);
 }
 
-void readArduinoData(Serial8N1 *arduino, double *heading,
-        vector<double> *readings)
-{
+void readArduinoData(Serial8N1 *arduino, double *heading, vector<double> *readings) {
     // Send command for arduino to send necessary data
     arduino->write("7 0.0");
     arduino_ready = false;

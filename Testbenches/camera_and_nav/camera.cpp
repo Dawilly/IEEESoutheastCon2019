@@ -12,16 +12,10 @@
 #include "camera.h"
 using namespace std;
 
-extern struct objects {
-    int type; //0 == ball, 1 == block
-    string color;
-};
-
-
 extern bool stop_camera;
 extern int debris_collected;
 
-void turnCameraOn() {
+raspicam::RaspiCam_Cv turnCameraOn() {
 	//doing it using raspbery pi camera API
 	raspicam::RaspiCam_Cv Camera;
 	cameraSetup(Camera);
@@ -29,16 +23,17 @@ void turnCameraOn() {
 	cout <<"Connecting to camera" << endl;
 	if(!Camera.open()) {
 		cout << "Oops! Error opening camera." << endl;
-		return 0;
 	}
 	cout << "Connected to camera = " << Camera.getId() << endl;
+	
+	return Camera;
 }
 
-void turnCameraOff() {
+void turnCameraOff(raspicam::RaspiCam_Cv &Camera) {
 	Camera.release();
 }
 
-void findDebris() {
+/*void findDebris() {
 	//in order of {hue, saturation, value}
 	int green_lower[3] = {45,100,80};
 	int green_upper [3]= {84,255,255};
@@ -117,7 +112,7 @@ void findDebris() {
 						if(approx.size() > 10) {
 							cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 							putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-							debris_detected = true;
+						
 							debris[debris_collected].type = 0;
 							debris[debris_collected].color = "green";
 						}
@@ -270,9 +265,9 @@ void findDebris() {
 	}
 	
 	turnCameraOff();
-}
+}*/
 
-void cameraIteration(vector<bool> &debris_objects) {
+void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera) {
 	// in order of {hue, saturation, value}
 	int green_lower[3] = {45,100,80};
 	int green_upper [3]= {84,255,255};
@@ -307,8 +302,6 @@ void cameraIteration(vector<bool> &debris_objects) {
 	vector<cv::Point> approx;
 
 	double epsilon;
-	
-	turnCameraOn();
 	
 	Camera.grab();
 	Camera.retrieve(image);
@@ -348,12 +341,12 @@ void cameraIteration(vector<bool> &debris_objects) {
 					if(approx.size() > 10) {
 						cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris_objects.insert(0, true);
+						debris_objects.insert(debris_objects.begin(), true);
 					}
 					else {
 						cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris_objects.insert(1, true);
+						debris_objects.insert(debris_objects.begin() + 1, true);
 					}
 				}
 			}
@@ -377,7 +370,7 @@ void cameraIteration(vector<bool> &debris_objects) {
 				else{
 					cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 					putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-					debris_objects.insert(2, true);
+					debris_objects.insert(debris_objects.begin() + 2, true);
 				}
 			 }
 		 }
@@ -394,7 +387,7 @@ void cameraIteration(vector<bool> &debris_objects) {
 			 if(area > 5000) {
 				drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
 				putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
-				debris_objects.insert(3, true);
+				debris_objects.insert(debris_objects.begin() + 3, true);
 			}
 		 }
 	}
@@ -417,12 +410,12 @@ void cameraIteration(vector<bool> &debris_objects) {
 					if(approx.size() > 10) {
 						cout << "{Red Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris_objects.insert(4, true);
+						debris_objects.insert(debris_objects.begin() + 4, true);
 					}
 					else {
 						cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris_objects.insert(5, true);
+						debris_objects.insert(debris_objects.begin() + 5, true);
 					}
 				}
 			}
@@ -447,12 +440,12 @@ void cameraIteration(vector<bool> &debris_objects) {
 					if(approx.size() > 10) {
 						cout << "{Yellow Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "yellow ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris_objects.insert(6, true);
+						debris_objects.insert(debris_objects.begin() + 6, true);
 					}
 					else {
 						cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris_objects.insert(7, true);
+						debris_objects.insert(debris_objects.begin() + 7, true);
 					}
 				}
 			}
