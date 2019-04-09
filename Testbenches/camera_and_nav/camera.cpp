@@ -3,11 +3,13 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "raspicam_cv.h"
 #include "opencv2/core.hpp"
 #include "opencv2/videoio.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
+#include "camera.h"
 using namespace std;
 
 extern struct objects {
@@ -270,7 +272,7 @@ void findDebris() {
 	turnCameraOff();
 }
 
-bool cameraIteration(vector<bool> &debris_objects(8)) {
+void cameraIteration(vector<bool> &debris_objects) {
 	// in order of {hue, saturation, value}
 	int green_lower[3] = {45,100,80};
 	int green_upper [3]= {84,255,255};

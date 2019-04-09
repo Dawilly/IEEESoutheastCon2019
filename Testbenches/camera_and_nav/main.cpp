@@ -3,6 +3,7 @@
 #include "Edge.h"
 #include "Vertex.h"
 #include "Serial8N1.h"
+#include "camera.h"
 #include <iostream>
 #include <deque>
 #include <string>
@@ -32,13 +33,13 @@ using namespace std;
 
 vector<double> correct(vector<double> point, double heading, vector<double> readings);
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
+void sendDriveCommand(string command,vector<double> point, Vertex *end, double heading);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings);
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag);
 void cameraSetup(raspicam::RaspiCam_Cv &Camera);
 void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]);
-void runCamera();
 
 struct objects {
     int type; //0 == ball, 1 == block
@@ -136,7 +137,7 @@ int main(int argc, char **argv) {
 	    // Calculate and perform a drive command
 	    command = makeDriveCommand(point, end, heading);
 	    cout << "Command is " << command << "." << endl;
-	    sendDriveCommand(command);
+	    sendDriveCommand(command, point, end, heading);
 
             // Update start
             start = end;
@@ -195,7 +196,7 @@ vector<double> correct(vector<double> point, double heading, vector<double> read
     return point;
 }
 
-void sendDriveCommand(string command) {
+void sendDriveCommand(string command, vector<double> point, Vertex *end, double heading) {
     bool debris_detected;
     arduino.write(command);
     arduino_ready = false;
@@ -218,7 +219,7 @@ void sendDriveCommand(string command) {
 	    // Calculate and perform a drive command
 	    command = makeDriveCommand(point, end, heading);
 	    
-	    sendDriveCommand(command);
+	    sendDriveCommand(command, point, end, heading);
 	}
     }
     turnCameraOff();
