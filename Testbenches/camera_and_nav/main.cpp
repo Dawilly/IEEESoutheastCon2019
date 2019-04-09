@@ -58,6 +58,8 @@ int main(int argc, char **argv) {
         cerr << "Too few arguments!" << endl;
         return -1;
     }
+    
+    vector<bool> debris_objects(8, false);
 
     // Set up GPIO 18 as "interrupt" to indicate arduino is ready for a message
     gpioInitialise();
@@ -197,10 +199,10 @@ void sendDriveCommand(string command) {
     bool debris_detected;
     arduino.write(command);
     arduino_ready = false;
-    turnCameraOn();
     while(arduino_ready != true){
-	debris_detected = cameraIteration();
-	if(debris_detected) {
+	cameraIteration(debris_objects);
+	if(find(debris_objects.begin(), debris_objects.end(), true) != debris_objects.end()) {
+	    //debris_objects contains true => there is debris in front of us
 	    string new_command = "4 1";
 	    arduino.write(new_command);
 	    while(arduino_ready != true) {
@@ -217,6 +219,7 @@ void sendDriveCommand(string command) {
 	    command = makeDriveCommand(point, end, heading);
 	    
 	    sendDriveCommand(command);
+	}
     }
     turnCameraOff();
 }

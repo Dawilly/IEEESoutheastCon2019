@@ -270,8 +270,8 @@ void findDebris() {
 	turnCameraOff();
 }
 
-bool cameraIteration() {
-		//in order of {hue, saturation, value}
+bool cameraIteration(vector<bool> &debris_objects(8)) {
+	// in order of {hue, saturation, value}
 	int green_lower[3] = {45,100,80};
 	int green_upper [3]= {84,255,255};
 
@@ -305,6 +305,8 @@ bool cameraIteration() {
 	vector<cv::Point> approx;
 
 	double epsilon;
+	
+	turnCameraOn();
 	
 	Camera.grab();
 	Camera.retrieve(image);
@@ -344,16 +346,12 @@ bool cameraIteration() {
 					if(approx.size() > 10) {
 						cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris[debris_collected].type = 0;
-						debris[debris_collected].color = "green";
-						return true;
+						debris_objects.insert(0, true);
 					}
 					else {
 						cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris[debris_collected].type = 1;
-						debris[debris_collected].color = "green";
-						return true;
+						debris_objects.insert(1, true);
 					}
 				}
 			}
@@ -377,9 +375,7 @@ bool cameraIteration() {
 				else{
 					cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 					putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-					debris[debris_collected].type = 1;
-					debris[debris_collected].color = "blue";
-					return true;
+					debris_objects.insert(2, true);
 				}
 			 }
 		 }
@@ -396,9 +392,7 @@ bool cameraIteration() {
 			 if(area > 5000) {
 				drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
 				putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
-				debris[debris_collected].type = 0;
-				debris[debris_collected].color = "blue";
-				return true;
+				debris_objects.insert(3, true);
 			}
 		 }
 	}
@@ -421,16 +415,12 @@ bool cameraIteration() {
 					if(approx.size() > 10) {
 						cout << "{Red Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris[debris_collected].type = 0;
-						debris[debris_collected].color = "red";
-						return true;
+						debris_objects.insert(4, true);
 					}
 					else {
 						cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris[debris_collected].type = 1;
-						debris[debris_collected].color = "red";
-						return true;
+						debris_objects.insert(5, true);
 					}
 				}
 			}
@@ -455,16 +445,12 @@ bool cameraIteration() {
 					if(approx.size() > 10) {
 						cout << "{Yellow Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "yellow ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris[debris_collected].type = 0;
-						debris[debris_collected].color = "yellow";
-						return true;
+						debris_objects.insert(6, true);
 					}
 					else {
 						cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
 						putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-						debris[debris_collected].type = 1;
-						debris[debris_collected].color = "yellow";
-						return true;
+						debris_objects.insert(7, true);
 					}
 				}
 			}
