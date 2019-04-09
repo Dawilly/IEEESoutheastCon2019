@@ -49,8 +49,6 @@ bool arduino_ready = true;
 
 // when we need to turn camera on and off
 bool stop_camera = false;
-// set to true when we see a debris object in the camera
-bool debris_detected = false;
 // the number of debris objects collected 
 int debris_collected = 0;
 
@@ -104,7 +102,10 @@ int main(int argc, char **argv) {
         // Follow the shortest path by executing commands
         Vertex *start = position, *end = NULL;
         for (; !path.empty(); path.pop_front()) {
-            // Get the target vertex
+	    //allow camera to run
+	    stop_camera = false;
+            
+	    // Get the target vertex
             end = path.front();
 
             // Update IMU heading and IR readings
@@ -121,24 +122,19 @@ int main(int argc, char **argv) {
             arduino.write(command);
             arduino_ready = false;
             while(arduino_ready != true){
-		if(debris_detected) {
-		    // write command to stop motors and pick up block
-		    
-		}
+		//turn
 	    }
+	    
+	    // Update IMU heading and IR readings
+	    readArduinoData(&arduino, &heading, &readings);
 
-            // Update IMU heading and IR readings
-            readArduinoData(&arduino, &heading, &readings);
-
-            // Update spatial point with arduino data
-            point = correct(point, heading, readings);
-
-            // Calculate and perform a drive command
-            command = makeDriveCommand(point, end, heading);
-            cout << "Command is " << command << "." << endl;
-            arduino.write(command);
-            arduino_ready = false;
-            while(arduino_ready != true);
+	    // Update spatial point with arduino data
+	    point = correct(point, heading, readings);
+	    
+	    // Calculate and perform a drive command
+	    command = makeDriveCommand(point, end, heading);
+	    cout << "Command is " << command << "." << endl;
+	    sendDriveCommand(command);
 
             // Update start
             start = end;
@@ -195,6 +191,34 @@ vector<double> correct(vector<double> point, double heading, vector<double> read
     // Otherwise, just use original point values (do nothing)
 
     return point;
+}
+
+void sendDriveCommand(string command) {
+    bool debris_detected;
+    arduino.write(command);
+    arduino_ready = false;
+    turnCameraOn();
+    while(arduino_ready != true){
+	debris_detected = cameraIteration();
+	if(debris_detected) {
+	    string new_command = "4 1";
+	    arduino.write(new_command);
+	    while(arduino_ready != true) {
+		// pick up block
+	    }
+	    
+	    // Update IMU heading and IR readings
+	    readArduinoData(&arduino, &heading, &readings);
+
+	    // Update spatial point with arduino data
+	    point = correct(point, heading, readings);
+	    
+	    // Calculate and perform a drive command
+	    command = makeDriveCommand(point, end, heading);
+	    
+	    sendDriveCommand(command);
+    }
+    turnCameraOff();
 }
 
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading) {
