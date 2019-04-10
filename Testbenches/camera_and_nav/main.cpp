@@ -35,7 +35,7 @@ vector<double> correct(vector<double> point, double heading, vector<double> read
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
 void sendDriveCommand(string command,vector<double> point, Vertex *end, 
 		      double heading, vector<bool> debris_objects, 
-		      Serial8N1 &arduino, vector<double> readings);
+		      Serial8N1 &arduino, vector<double> readings, raspicam::RaspiCam_Cv &Camera);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings);
@@ -70,6 +70,9 @@ int main(int argc, char **argv) {
     // Open serial port and use IRs to be parallel with left wall
     Serial8N1 arduino(argv[1], 9600);
 
+    //turn camera on
+    raspicam::RaspiCam_Cv Camera = turnCameraOn();
+    
     // Create a graph of the playing field
     ifstream graph_file(argv[2], ifstream::in);
     vector<Vertex *> graph = makeGraph(&graph_file);
@@ -134,7 +137,7 @@ int main(int argc, char **argv) {
 	    // Calculate and perform a drive command
 	    command = makeDriveCommand(point, end, heading);
 	    cout << "Command is " << command << "." << endl;
-	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings);
+	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera);
 
             // Update start
             start = end;
@@ -143,7 +146,9 @@ int main(int argc, char **argv) {
         // Update the position
         position = (*w);
     }
+    //turn off camera
 
+    turnCameraOff(Camera);
     // Join GPIO thread and finish
     gpioTerminate();
     return 0;
@@ -194,11 +199,11 @@ vector<double> correct(vector<double> point, double heading, vector<double> read
 }
 
 void sendDriveCommand(string command, vector<double> point, Vertex *end, double heading, 
-		      vector<bool> debris_objects, Serial8N1 &arduino, vector<double> readings) {
+		      vector<bool> debris_objects, Serial8N1 &arduino, vector<double> readings, raspicam::RaspiCam_Cv &Camera) {
     arduino.write(command);
     arduino_ready = false;
     fill(debris_objects.begin(), debris_objects.end(), false);
-    raspicam::RaspiCam_Cv Camera = turnCameraOn();
+    //raspicam::RaspiCam_Cv Camera = turnCameraOn();
     while(arduino_ready != true){
 	cameraIteration(debris_objects, Camera);
 	if(find(debris_objects.begin(), debris_objects.end(), true) != debris_objects.end()) {
@@ -218,10 +223,10 @@ void sendDriveCommand(string command, vector<double> point, Vertex *end, double 
 	    // Calculate and perform a drive command
 	    command = makeDriveCommand(point, end, heading);
 	    
-	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings);
+	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera);
 	}
     }
-    turnCameraOff(Camera);
+    //turnCameraOff(Camera);
 }
 
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading) {

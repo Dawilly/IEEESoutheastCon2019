@@ -14,6 +14,7 @@ using namespace std;
 
 extern bool stop_camera;
 extern int debris_collected;
+int camera_count;
 
 raspicam::RaspiCam_Cv turnCameraOn() {
 	//doing it using raspbery pi camera API
@@ -210,7 +211,7 @@ void turnCameraOff(raspicam::RaspiCam_Cv &Camera) {
 			for (int i = 0; i < yellow_contours.size(); i++) {
 				epsilon = 0.01*cv::arcLength(yellow_contours[i], true);
 				cv::approxPolyDP(yellow_contours[i], approx, epsilon, true);
-				cv::Moments m = cv::moments(yellow_contours[i],true);
+			1	cv::Moments m = cv::moments(yellow_contours[i],true);
 				cv::Point p(m.m10/m.m00, m.m01/m.m00);
 				double area = cv::contourArea(approx);
 				double perimeter = cv::arcLength(approx, true);
@@ -305,6 +306,7 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 	
 	Camera.grab();
 	Camera.retrieve(image);
+	camera_count++;
 
 	cv::GaussianBlur(image, blurred, cv::Size(11,11), 0);
 	cv::cvtColor(blurred, hsv, cv::COLOR_BGR2HSV);
@@ -468,7 +470,8 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 				}
 			}
 		}
-	}	
+	}
+	cv::imwrite("Images/image" + to_string(camera_count) + ".jpg", image);  	
 }
 
 void cameraSetup(raspicam::RaspiCam_Cv &Camera) {
