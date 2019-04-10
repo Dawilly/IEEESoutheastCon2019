@@ -33,9 +33,10 @@ using namespace std;
 
 vector<double> correct(vector<double> point, double heading, vector<double> readings);
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
-void sendDriveCommand(string command,vector<double> point, Vertex *end, 
+void sendDriveCommand(string command, vector<double> point, Vertex *end, 
 		      double heading, vector<bool> debris_objects, 
-		      Serial8N1 &arduino, vector<double> readings, raspicam::RaspiCam_Cv &Camera);
+		      Serial8N1 &arduino, vector<double> readings, raspicam::RaspiCam_Cv &Camera,
+              vector<Vertex *> &vertices);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings);
@@ -45,10 +46,10 @@ void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]);
 
 bool arduino_ready = true;
 
-// when we need to turn camera on and off
-bool stop_camera = false;
 // the number of debris objects collected 
 int debris_collected = 0;
+// have we recorded the initial tape color yet
+bool know_home_base = false;
 
 int main(int argc, char **argv) {
     // Check number of arguments
@@ -81,14 +82,14 @@ int main(int argc, char **argv) {
     // Create a set of waypoints
     ifstream waypoints_file(argv[3], ifstream::in);
     vector<Vertex *> waypoints;
-    while (vertexPending(&waypoints_file))
+    while (vertexPending(&waypoints_file)) {
         waypoints.push_back(makeVertex(&waypoints_file, &graph));
+    }
     waypoints_file.close();
 
     // Initialize IMU heading and IR readings
     double heading;
     vector<double> readings(8, 0.0);
-
 
     // Initialize position and begin iterating through waypoints
     Vertex *position = waypoints[0];
@@ -104,11 +105,8 @@ int main(int argc, char **argv) {
 
         // Follow the shortest path by executing commands
         Vertex *start = position, *end = NULL;
-        for (; !path.empty(); path.pop_front()) {
-	    //allow camera to run
-	    stop_camera = false;
-            
-	    // Get the target vertex
+        for (; !path.empty(); path.pop_front()) { 
+            // Get the target vertex
             end = path.front();
 
             // Update IMU heading and IR readings
@@ -124,20 +122,20 @@ int main(int argc, char **argv) {
             cout << "Command is " << command << "." << endl;
             arduino.write(command);
             arduino_ready = false;
-            while(arduino_ready != true){
-		//turn
-	    }
+            while(arduino_ready != true) {
+                //turn
+            }
 	    
-	    // Update IMU heading and IR readings
-	    readArduinoData(&arduino, &heading, &readings);
+    	    // Update IMU heading and IR readings
+    	    readArduinoData(&arduino, &heading, &readings);
 
-	    // Update spatial point with arduino data
-	    point = correct(point, heading, readings);
-	    
-	    // Calculate and perform a drive command
-	    command = makeDriveCommand(point, end, heading);
-	    cout << "Command is " << command << "." << endl;
-	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera);
+    	    // Update spatial point with arduino data
+    	    point = correct(point, heading, readings);
+    	    
+    	    // Calculate and perform a drive command
+    	    command = makeDriveCommand(point, end, heading);
+    	    cout << "Command is " << command << "." << endl;
+    	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera, graph);
 
             // Update start
             start = end;
@@ -146,8 +144,8 @@ int main(int argc, char **argv) {
         // Update the position
         position = (*w);
     }
-    //turn off camera
 
+    //turn off camera
     turnCameraOff(Camera);
     // Join GPIO thread and finish
     gpioTerminate();
@@ -199,34 +197,36 @@ vector<double> correct(vector<double> point, double heading, vector<double> read
 }
 
 void sendDriveCommand(string command, vector<double> point, Vertex *end, double heading, 
-		      vector<bool> debris_objects, Serial8N1 &arduino, vector<double> readings, raspicam::RaspiCam_Cv &Camera) {
+		      vector<bool> debris_objects, Serial8N1 &arduino, vector<double> readings, raspicam::RaspiCam_Cv &Camera, vector<Vertex *> &vertices) {
     arduino.write(command);
     arduino_ready = false;
+    Color color = Invalid;
     fill(debris_objects.begin(), debris_objects.end(), false);
-    //raspicam::RaspiCam_Cv Camera = turnCameraOn();
     while(arduino_ready != true){
-	cameraIteration(debris_objects, Camera);
-	if(find(debris_objects.begin(), debris_objects.end(), true) != debris_objects.end()) {
-	    //debris_objects contains true => there is debris in front of us
-	    string new_command = "4 1";
-	    arduino.write(new_command);
-	    while(arduino_ready != true) {
-		// pick up block
-	    }
-	    
-	    // Update IMU heading and IR readings
-	    readArduinoData(&arduino, &heading, &readings);
+    	color = (Color)(cameraIteration(debris_objects, Camera));
+        if(!know_home_base) {
+            assignBaseColors(vertices, (Color)(color));
+        }
+    	if(find(debris_objects.begin(), debris_objects.end(), true) != debris_objects.end()) {
+    	    //debris_objects contains true => there is debris in front of us
+    	    string new_command = "4 1";
+    	    arduino.write(new_command);
+    	    while(arduino_ready != true) {
+    		// pick up block
+    	    }
+    	    
+    	    // Update IMU heading and IR readings
+    	    readArduinoData(&arduino, &heading, &readings);
 
-	    // Update spatial point with arduino data
-	    point = correct(point, heading, readings);
-	    
-	    // Calculate and perform a drive command
-	    command = makeDriveCommand(point, end, heading);
-	    
-	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera);
-	}
+    	    // Update spatial point with arduino data
+    	    point = correct(point, heading, readings);
+    	    
+    	    // Calculate and perform a drive command
+    	    command = makeDriveCommand(point, end, heading);
+    	    
+    	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera);
+    	}
     }
-    //turnCameraOff(Camera);
 }
 
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading) {
@@ -313,5 +313,49 @@ void handle_interrupt(int gpio, int level, uint32_t tick, void *flag) {
              << ": Arduino has begun processing a command at time " << tick
              << "." << endl;
     }
+}
+
+void assignBaseColors(vector<Vertex *> &vertices, Color color) {
+    Vertex *home_base = NULL;
+    Vertex *left_adj = NULL;
+    Vertex *right_adj = NULL;
+    Vertex *diagonal = NULL;
+    double hb_x, hb_y, la_x, la_y, ra_x, ra_y, d_x, d_y;
+    hb_x = 7.25;
+    hb_y = 7.25;
+    la_x = 7.25;
+    la_y = 89.75;
+    ra_x = 89.75;
+    ra_y = 7.25;
+    d_x = 89.75;
+    d_y = 89.75;
+    int base_count = 0;
+    for (vector<Vertex *>::iterator i = vertices->begin(); i != vertices->end(); i++) {
+        if ((*i)->getX() == hb_x && (*i)->getY() == hb_y) {
+            home_base = (*i);
+            base_count++;
+        }
+        else if(((*i)->getX() == la_x && (*i)->getY() == la_y)) {
+            left_adj = (*i);
+            base_count++;
+        }
+        else if(((*i)->getX() == ra_x && (*i)->getY() == ra_y)) {
+            right_adj = (*i);
+            base_count++;
+        }
+        else if(((*i)->getX() == d_x && (*i)->getY() == d_y)) {
+            diagonal = (*i);
+            base_count++;
+        }
+
+        if(base_count == 4) {
+            break;
+        }
+    }
+
+    home_base.Color = color;
+    left_adj.Color = (Color)((((int)(color)) + 1) % 4);
+    right_adj.Color = (Color)((((int)(color)) - 1) % 4);
+    diagonal.Color = (Color)((((int)(color)) 2 1) % 4);
 }
 

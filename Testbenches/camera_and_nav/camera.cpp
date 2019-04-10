@@ -12,9 +12,9 @@
 #include "camera.h"
 using namespace std;
 
-extern bool stop_camera;
 extern int debris_collected;
 int camera_count;
+extern bool know_home_base;
 
 raspicam::RaspiCam_Cv turnCameraOn() {
 	//doing it using raspbery pi camera API
@@ -268,7 +268,7 @@ void turnCameraOff(raspicam::RaspiCam_Cv &Camera) {
 	turnCameraOff();
 }*/
 
-void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera) {
+int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera) {
 	// in order of {hue, saturation, value}
 	int green_lower[3] = {45,100,80};
 	int green_upper [3]= {84,255,255};
@@ -338,6 +338,10 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 				if(perimeter > 1000) {
 					cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
 					putText(image, "green tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					if(!know_home_base) {
+						know_home_base = true;
+						return 1;
+					}
 				}
 				else{
 					if(approx.size() > 10) {
@@ -368,6 +372,10 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 				if(perimeter > 1000) {
 					cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
 					putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					if(!know_home_base) {
+						know_home_base = true;
+						return 2;
+					}
 				}
 				else{
 					cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
@@ -407,6 +415,10 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 				if(perimeter > 1000) {
 					cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
 					putText(image, "red tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					if(!know_home_base) {
+						know_home_base = true;
+						return 0;
+					}
 				}
 				else{
 					if(approx.size() > 10) {
@@ -437,6 +449,10 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 				if(perimeter > 1000) {
 					cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
 					putText(image, "yellow tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+					if(!know_home_base) {
+						know_home_base = true;
+						return 3;
+					}
 				}
 				else{
 					if(approx.size() > 10) {
@@ -471,7 +487,8 @@ void cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera
 			}
 		}
 	}
-	cv::imwrite("Images/image" + to_string(camera_count) + ".jpg", image);  	
+	cv::imwrite("Images/image" + to_string(camera_count) + ".jpg", image); 
+	return 4; 	
 }
 
 void cameraSetup(raspicam::RaspiCam_Cv &Camera) {
