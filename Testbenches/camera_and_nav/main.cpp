@@ -330,20 +330,20 @@ void assignBaseColors(vector<Vertex *> &vertices, Color color) {
     d_x = 89.75;
     d_y = 89.75;
     int base_count = 0;
-    for (vector<Vertex *>::iterator i = vertices->begin(); i != vertices->end(); i++) {
-        if ((*i)->getX() == hb_x && (*i)->getY() == hb_y) {
+    for (vector<Vertex *>::iterator i = vertices.begin(); i != vertices.end(); i++) {
+        if ((*i).getX() == hb_x && (*i).getY() == hb_y) {
             home_base = (*i);
             base_count++;
         }
-        else if(((*i)->getX() == la_x && (*i)->getY() == la_y)) {
+        else if(((*i).getX() == la_x && (*i).getY() == la_y)) {
             left_adj = (*i);
             base_count++;
         }
-        else if(((*i)->getX() == ra_x && (*i)->getY() == ra_y)) {
+        else if(((*i).getX() == ra_x && (*i).getY() == ra_y)) {
             right_adj = (*i);
             base_count++;
         }
-        else if(((*i)->getX() == d_x && (*i)->getY() == d_y)) {
+        else if(((*i).getX() == d_x && (*i).getY() == d_y)) {
             diagonal = (*i);
             base_count++;
         }
