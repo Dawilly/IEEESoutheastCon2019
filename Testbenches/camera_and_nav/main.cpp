@@ -204,10 +204,14 @@ void sendDriveCommand(string command, vector<double> point, Vertex *end, double 
     Color color = Invalid;
     fill(debris_objects.begin(), debris_objects.end(), false);
     while(arduino_ready != true){
-    	color = (Color)(cameraIteration(debris_objects, Camera));
-        if(!know_home_base) {
-            assignBaseColors(vertices, (Color)(color));
+    	cout << "about to call camera iteration" << endl;
+	color = (Color)(cameraIteration(debris_objects, Camera));
+        cout << "captured image. color is: " << color << endl;
+	if(!know_home_base && color != Invalid) {
+        	cout << "assigning base colors" << endl;    
+		assignBaseColors(vertices, (Color)(color));
         }
+	cout << "did we call know home base? yes if false, no if true: " << know_home_base << endl;
     	if(find(debris_objects.begin(), debris_objects.end(), true) != debris_objects.end()) {
     	    //debris_objects contains true => there is debris in front of us
     	    string new_command = "4 1";
@@ -297,6 +301,8 @@ void readArduinoData(Serial8N1 *arduino, double *heading, vector<double> *readin
     (*heading) = arduino->readReal();
     for (vector<double>::iterator r = readings->begin(); r != readings->end();
             r++) (*r) = arduino->readReal();
+    arduino->readReal();
+    arduino->readReal();
 }
 
 // Function to handle change in level of GPIO 18
