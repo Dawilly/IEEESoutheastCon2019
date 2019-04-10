@@ -11,7 +11,7 @@
 extern raspicam::RaspiCam_Cv turnCameraOn();
 extern void turnCameraOff(raspicam::RaspiCam_Cv &Camera);
 extern void findDebris();
-extern void cameraIteration(std::vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera);
+extern int cameraIteration(std::vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera);
 extern void cameraSetup(raspicam::RaspiCam_Cv &Camera);
 extern void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]);
 
