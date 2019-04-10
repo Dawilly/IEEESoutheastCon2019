@@ -94,13 +94,13 @@ char Serial8N1::read() {
 // Tokens are strings that end in whitespace
 std::string Serial8N1::readToken() {
     std::string output;
-    
+
     char ch;
     while (::read(this->fd, &ch, 1) > 0) {
         if (std::isspace(ch)) break;
         output += ch;
     }
-    
+
     return output;
 }
 
@@ -125,12 +125,18 @@ std::string Serial8N1::readLine() {
 // Integers end in whitespace
 int Serial8N1::readInt() {
     std::string buffer;
+    bool isNegative = false;
     try {
         char ch;
         while (::read(this->fd, &ch, 1) > 0) {
             if (std::isspace(ch)) break;
-            // Integers contain only digits
-            if (!std::isdigit(ch)) throw ch;
+            // Integers can start with a negative sign
+            if (ch == '-' && !isNegative && buffer.size() == 0) {
+                isNegative = true;
+                continue;
+            }
+            // Otherwise, integers only contain digits
+            else if (!std::isdigit(ch)) throw ch;
             buffer += ch;
         }
     }
@@ -139,26 +145,28 @@ int Serial8N1::readInt() {
                   << offending << ">" << std::endl;
         std::exit(EXIT_FAILURE);
     }
-    return std::stoi(buffer);
+    int output = std::stoi(buffer);
+    return (isNegative) ? -output : output;
 }
 
 // Real numbers end in whitespace
 double Serial8N1::readReal() {
     std::string buffer;
+    bool isNegative = false;
     try {
         char ch;
         bool hasDecimal = false;
         while (::read(this->fd, &ch, 1) > 0) {
             if (std::isspace(ch)) break;
-            if (!std::isdigit(ch)) {
-                if (ch == '.') {
-                    // Real numbers only have one decimal point
-                    if (hasDecimal) throw ch;
-                    else hasDecimal = true;
-                }
-                // Real numbers contain digits or a single decimal point
-                else throw ch;
+            // Real numbers can start with a negative sign
+            if (ch == '-' && !isNegative && buffer.size() == 0) {
+                isNegative = true;
+                continue;
             }
+            // Real numbers can contain a single decimal point
+            else if (ch == '.' && !hasDecimal) hasDecimal = true;
+            // Otherwise, real numbers only contain digits
+            else if (!std::isdigit(ch)) throw ch;
             buffer += ch;
         }
     }
@@ -167,7 +175,8 @@ double Serial8N1::readReal() {
                   << offending << ">" << std::endl;
         std::exit(EXIT_FAILURE);
     }
-    return std::stod(buffer);
+    double output = std::stod(buffer);
+    return (isNegative) ? -output : output;
 }
 
 // All transmitted messages must be strings and end in a whitespace
