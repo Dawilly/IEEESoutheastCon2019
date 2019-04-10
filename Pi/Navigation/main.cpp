@@ -80,6 +80,8 @@ int main(int argc, char **argv) {
 
         // Follow the shortest path by executing commands
         Vertex *start = position, *end = NULL;
+        double tmp[] = {start->getX(), start->getY()};
+        vector<double> point(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
         for (; !path.empty(); path.pop_front()) {
             // Get the target vertex
             end = path.front();
@@ -87,9 +89,7 @@ int main(int argc, char **argv) {
             // Update IMU heading and IR readings
             readArduinoData(&arduino, &heading, &readings, &deltas);
 
-            // Initialize spatial point and correct with arduino data
-            double tmp[] = {start->getX(), start->getY()};
-            vector<double> point(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
+            // Correct the spatial spatial point and correct with arduino data
             point = correct(point, heading, readings, deltas);
 
             // Calculate and perform a turn command
