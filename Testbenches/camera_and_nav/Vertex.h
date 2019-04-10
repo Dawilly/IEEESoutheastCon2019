@@ -11,13 +11,14 @@ typedef enum {
     Green = 1,
     Blue = 2,
     Yellow = 3,
-    Invaid = 4
+    Invalid = 4
 } Color;
 
 class Vertex {
     private:
         double x, y;
         std::vector<Edge *> adjacencyList;
+        Color color;
         
         // Necessary for Dijikstra's Algorithm
         double distance;

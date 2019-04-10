@@ -5,7 +5,7 @@
 Vertex::Vertex(double x, double y) : adjacencyList(){
     this->x = x;
     this->y = y;
-    this->Color = Invalid;
+    this->color = Invalid;
     this->distance = -1.0;
     this->previous = nullptr;
 }
@@ -18,9 +18,9 @@ double Vertex::getY() {return this->y;}
 
 std::vector<Edge *> *Vertex::getAdjacencyList() {return &(this->adjacencyList);}
 
-Color Vertex::getColor() {return this->Color;}
+Color Vertex::getColor() {return this->color;}
 
-void Vertex::setColor(Color color) {this->Color = color;}
+void Vertex::setColor(Color color) {this->color = color;}
 
 // Necessary for Dijikstra's Algorithm
 double Vertex::getDistance() {return this->distance;}
