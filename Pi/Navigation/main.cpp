@@ -91,6 +91,8 @@ int main(int argc, char **argv) {
 
             // Correct the spatial spatial point with arduino data
             point = correct(point, heading, readings, deltas);
+            cout << "X coordinate is " << point[0] << endl;
+            cout << "Y coordinate is " << point[1] << endl;
 
             // Calculate and perform a turn command
             string command = makeTurnCommand(point, end, &heading);
