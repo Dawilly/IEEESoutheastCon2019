@@ -268,8 +268,8 @@ void readArduinoData(Serial8N1 *arduino, double *heading,
     (*heading) = arduino->readReal();
     for (vector<double>::iterator r = readings->begin(); r != readings->end();
             r++) (*r) = arduino->readReal();
-    (*delta)[0] = arduino->readReal();
-    (*delta)[1] = arduino->readReal();
+    (*deltas)[0] = arduino->readReal();
+    (*deltas)[1] = arduino->readReal();
 }
 
 // Function to handle change in level of GPIO 18
