@@ -43,6 +43,7 @@ void readArduinoData(Serial8N1 *arduino, double *heading,
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag);
 void cameraSetup(raspicam::RaspiCam_Cv &Camera);
 void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]);
+void assignBaseColors(vector<Vertex *> &vertices, Color color);
 
 bool arduino_ready = true;
 
@@ -224,7 +225,7 @@ void sendDriveCommand(string command, vector<double> point, Vertex *end, double 
     	    // Calculate and perform a drive command
     	    command = makeDriveCommand(point, end, heading);
     	    
-    	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera);
+    	    sendDriveCommand(command, point, end, heading, debris_objects, arduino, readings, Camera, vertices);
     	}
     }
 }
