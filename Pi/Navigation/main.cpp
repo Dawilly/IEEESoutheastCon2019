@@ -86,10 +86,10 @@ int main(int argc, char **argv) {
             // Get the target vertex
             end = path.front();
 
-            // Update IMU heading and IR readings
+            // Update IMU heading, IR readings, and deltas
             readArduinoData(&arduino, &heading, &readings, &deltas);
 
-            // Correct the spatial spatial point and correct with arduino data
+            // Correct the spatial spatial point with arduino data
             point = correct(point, heading, readings, deltas);
 
             // Calculate and perform a turn command
@@ -99,10 +99,10 @@ int main(int argc, char **argv) {
             arduino_ready = false;
             while(arduino_ready != true);
 
-            // Update IMU heading and IR readings
+            // Update IMU heading, IR readings, and deltas
             readArduinoData(&arduino, &heading, &readings, &deltas);
 
-            // Update spatial point with arduino data
+            // Correct the spatial point with arduino data
             point = correct(point, heading, readings, deltas);
 
             // Calculate and perform a drive command
@@ -115,6 +115,9 @@ int main(int argc, char **argv) {
             // Update start
             start = end;
         }
+
+        // Read arduino data to reset deltas for next path
+        readArduinoData(&arduino, &heading, &readings, &deltas);
 
         // Update the position
         position = (*w);
