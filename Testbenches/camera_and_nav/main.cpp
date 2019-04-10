@@ -353,9 +353,9 @@ void assignBaseColors(vector<Vertex *> &vertices, Color color) {
         }
     }
 
-    home_base.Color = color;
-    left_adj.Color = (Color)((((int)(color)) + 1) % 4);
-    right_adj.Color = (Color)((((int)(color)) - 1) % 4);
-    diagonal.Color = (Color)((((int)(color)) + 2) % 4);
+    home_base->setColor(color);
+    left_adj->setColor((Color)((((int)(color)) + 1) % 4));
+    right_adj->setColor((Color)((((int)(color)) - 1) % 4));
+    diagonal->setColor((Color)((((int)(color)) + 2) % 4));
 }
 
