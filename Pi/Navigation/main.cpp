@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         // Handle irregular operation
         if (carrying_debris != Invalid) {
             arduino.write("4 0");
-            while (!arduino_ready);
+	    while (!arduino_ready);
             carrying_debris = Invalid;
             w--;
         }
@@ -330,6 +330,7 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
     arduino->write(command);
     arduino_ready = false;
     Color color;
+    fill(debris_objects->begin(), debris_objects->end(), false);
     while (!arduino_ready) {
         color = (Color) cameraIteration((*debris_objects), (*camera));
         if (!know_home_base && color != Invalid) {
@@ -343,7 +344,7 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
             // Use index to identify debris color
             int index = distance(debris_objects->begin(), search);
             carrying_debris = (Color) (index / 2);
-            
+            cout << "index" << index << "\tcarrying_debris: " << ((int)(carrying_debris)) << endl;
             // When debris is detected, drive straight for time and pick it up
             //  with the belt
             this_thread::sleep_for(chrono::milliseconds(500));
