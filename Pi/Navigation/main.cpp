@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
         cerr << "Too few arguments!" << endl;
         return -1;
     }
+    
 
     // Set up GPIO 18 as "interrupt" to indicate arduino is ready for a message
     gpioInitialise();
@@ -63,16 +64,18 @@ int main(int argc, char **argv) {
     // Open serial port and use IRs to be parallel with left wall
     Serial8N1 arduino(argv[1], 9600);
 
+    // Turn camera on and initialize vector of debris detection flags
+    raspicam::RaspiCam_Cv Camera = turnCameraOn();
+    vector<bool> debris_objects(8, false);
+   
     // Create a graph of the playing field
     ifstream graph_file(argv[2], ifstream::in);
     vector<Vertex *> graph = makeGraph(&graph_file);
     graph_file.close();
     
     // Identify the four corners of the playing field
-    vector<Vertex *> corners(nullptr, 4);
-    for (vector<Vertex *>::iterator c = graph.begin();
-         c != graph.end(); c++)
-    {
+    vector<Vertex *> corners(4, nullptr);
+    for (vector<Vertex *>::iterator c = graph.begin(); c != graph.end(); c++) {
         if ((*c)->getX() == 7.25 && (*c)->getY() == 7.25) {
             corners[0] = (*c);
         }
@@ -98,7 +101,7 @@ int main(int argc, char **argv) {
         waypoints.push_back(makeVertex(&waypoints_file, &graph));
     waypoints_file.close();
 
-    // Initialize IMU heading and IR readings
+    // Initialize IMU heading, IR readings and deltas
     double heading;
     vector<double> readings(8, 0.0);
     vector<double> deltas(2, 0.0);
@@ -147,7 +150,7 @@ int main(int argc, char **argv) {
             cout << "Command is " << command << "." << endl;
             arduino.write(command);
             arduino_ready = false;
-            while(arduino_ready != true);
+            while (!arduino_ready);
 
             // Update IMU heading, IR readings, and deltas
             readArduinoData(&arduino, &heading, &readings, &deltas);
@@ -158,10 +161,9 @@ int main(int argc, char **argv) {
             // Calculate and perform a drive command
             command = makeDriveCommand(point, end, heading);
             cout << "Command is " << command << "." << endl;
-            arduino.write(command);
-            arduino_ready = false;
-            while(arduino_ready != true);
-
+            sendDriveCommand(&Camera, &debris_objects, &corners, &arduino,
+                    command, &point, end, &heading, &readings, &deltas); 
+            
             // Update start
             start = end;
         }
@@ -175,14 +177,14 @@ int main(int argc, char **argv) {
         // Handle irregular operation
         if (carrying_debris != Invalid) {
             arduino.write("4 0");
-            while(!arduino_ready);
+            while (!arduino_ready);
             carrying_debris = Invalid;
             w--;
         }
     }
 
-
-    // Join GPIO thread and finish
+    // Turn off camera, join GPIO thread, and finish
+    turnCameraOff(Camera);
     gpioTerminate();
     return 0;
 }
@@ -327,35 +329,35 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
     arduino_ready = false;
     Color color;
     while (!arduino_ready) {
-        color = (Color) cameraIteration(debris_objects, camera);
+        color = (Color) cameraIteration((*debris_objects), (*camera));
         if (!know_home_base && color != Invalid) {
             cout << "Assigning base colors." << endl;
             assignBaseColors(corners, color);
         }
         // Search to see if debris was found
-        vector<bool>::iterator search = find(debris_objects.begin(),
-                debris_objects.end(), true);
-        if (search != debris_objects.end()) {
+        vector<bool>::iterator search = find(debris_objects->begin(),
+                debris_objects->end(), true);
+        if (search != debris_objects->end()) {
             // Use index to identify debris color
-            int index = distance(debris_objects.begin(), search);
+            int index = distance(debris_objects->begin(), search);
             carrying_debris = (Color) (index / 2);
             
             // When debris is detected, drive straight for time and pick it up
             //  with the belt
             this_thread::sleep_for(chrono::milliseconds(500));
-            arduino.write("4 1");
-            while(!arduino_ready);
+            arduino->write("4 1");
+            while (!arduino_ready);
             
             // Update IMU heading, IR readings, and deltas
             readArduinoData(arduino, heading, readings, deltas);
             
             // Correct the spatial point with arduino data
-            point = correct((*point), (*heading), (*readings), (*deltas));
+            (*point) = correct((*point), (*heading), (*readings), (*deltas));
             
             // Calculate and perform the new drive command
             command = makeDriveCommand((*point), end, (*heading));
             arduino->write(command);
-            while(!arduino_ready);
+            while (!arduino_ready);
             
             // Send the new drive command recursively after collecting debris
             //sendDriveCommand(camera, debris_objects, corners, arduino,
@@ -377,7 +379,7 @@ void readArduinoData(Serial8N1 *arduino, double *heading,
     // Send command for arduino to send necessary data
     arduino->write("7 0.0");
     arduino_ready = false;
-    while(arduino_ready != true);
+    while (!arduino_ready);
 
     // Read received data and update IMU heading, IR readings, and delta values
     (*heading) = arduino->readReal();
