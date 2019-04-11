@@ -116,9 +116,21 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         debris_objects.insert(debris_objects.begin(), true);
                     }
                     else {
-                        cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-                        putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin() + 1, true);
+                        cv::Rect rect = boundingRect(approx);
+                        // check that we are seeing a square
+                        if((float)((rect.width)/(rect.height)) == 1){
+                            cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+                            putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                            debris_objects.insert(debris_objects.begin() + 1, true);
+                        }
+                        else {
+                            cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+                            putText(image, "green tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                            if(!know_home_base) {
+                                know_home_base = true;
+                                return 1;
+                            }
+                        }
                     }
                 }
             }
@@ -144,9 +156,21 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     }
                 }
                 else{
-                    cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-                    putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                    debris_objects.insert(debris_objects.begin() + 2, true);
+                    cv::Rect rect = boundingRect(approx);
+                    // check that we are seeing a square
+                    if((float)((rect.width)/(rect.height)) == 1){
+                        cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+                        putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                        debris_objects.insert(debris_objects.begin() + 3, true);
+                    }
+                    else {
+                        cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+                        putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                        if(!know_home_base) {
+                            know_home_base = true;
+                            return 2;
+                        }
+                    }
                 }
             }
         }
@@ -162,7 +186,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
             if(area > 5000) {
                 drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
                 putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
-                debris_objects.insert(debris_objects.begin() + 3, true);
+                debris_objects.insert(debris_objects.begin() + 2, true);
             }
         }
     }
@@ -192,9 +216,21 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         debris_objects.insert(debris_objects.begin() + 4, true);
                     }
                     else {
-                        cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-                        putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin() + 5, true);
+                        cv::Rect rect = boundingRect(approx);
+                        // check that we are seeing a square
+                        if((float)((rect.width)/(rect.height)) == 1){
+                            cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+                            putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                            debris_objects.insert(debris_objects.begin() + 5, true);
+                        }
+                        else {
+                            cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+                            putText(image, "red tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                            if(!know_home_base) {
+                                know_home_base = true;
+                                return 0;
+                            }
+                        }
                     }
                 }
             }
@@ -226,9 +262,21 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         debris_objects.insert(debris_objects.begin() + 6, true);
                     }
                     else {
-                        cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
-                        putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin() + 7, true);
+                        cv::Rect rect = boundingRect(approx);
+                        // check that we are seeing a square
+                        if((float)((rect.width)/(rect.height)) == 1){
+                            cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
+                            putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                            debris_objects.insert(debris_objects.begin() + 7, true);
+                        }
+                        else {
+                            cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
+                            putText(image, "yellow tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
+                            if(!know_home_base) {
+                                know_home_base = true;
+                                return 3;
+                            }
+                        }
                     }
                 }
             }
