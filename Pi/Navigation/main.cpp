@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
     for (vector<Vertex *>::iterator w = waypoints.begin() + 1;
             w != waypoints.end(); w++)
     {
+	cout << "know home base? : " << know_home_base << endl;
         // Handle irregular operation
         Vertex *target = (*w);
         if (carrying_debris != Invalid) {
