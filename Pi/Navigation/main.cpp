@@ -106,12 +106,15 @@ int main(int argc, char **argv) {
     vector<double> readings(8, 0.0);
     vector<double> deltas(2, 0.0);
 
-    // Initialize position and begin iterating through waypoints
+    // Initialize position and spatial point, begin iterating through waypoints
     Vertex *position = waypoints[0];
+    double tmp[] = {position->getX(), position->getY()};
+    vector<double> point(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
     for (vector<Vertex *>::iterator w = waypoints.begin() + 1;
             w != waypoints.end(); w++)
     {
-	cout << "know home base? : " << know_home_base << endl;
+    string answer = (know_home_base) ? "Yes!" : "No.";
+	cout << "Homebase identified? " << answer << endl;
         // Handle irregular operation
         Vertex *target = (*w);
         if (carrying_debris != Invalid) {
@@ -133,9 +136,7 @@ int main(int argc, char **argv) {
         path.pop_front(); // First vertex is position, so ignore it
 
         // Follow the shortest path by executing commands
-        Vertex *start = position, *end = NULL;
-        double tmp[] = {start->getX(), start->getY()};
-        vector<double> point(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
+        Vertex *end = nullptr;
         for (; !path.empty(); path.pop_front()) {
             // Get the target vertex
             end = path.front();
@@ -171,16 +172,10 @@ int main(int argc, char **argv) {
             sendDriveCommand(&Camera, &debris_objects, &corners, &arduino,
                     command, &point, end, &heading, &readings, &deltas); 
             
-            // Update start
-            start = end;
+            // Update position
+            position = end;
         }
 
-        // Read arduino data to reset deltas for next path
-        readArduinoData(&arduino, &heading, &readings, &deltas);
-
-        // Update the position
-        position = target;
-        
         // Handle irregular operation
         if (target != (*w)) {
             arduino.write("4 0");
