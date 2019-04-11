@@ -3,13 +3,20 @@
 #include "Edge.h"
 #include "Vertex.h"
 #include "Serial8N1.h"
+#include "Camera.h"
 #include <iostream>
+#include <chrono>
 #include <deque>
 #include <string>
 #include <thread>
 #include <vector>
 #include <math.h>
 #include <pigpio.h>
+#include "raspicam_cv.h"
+#include "opencv2/core.hpp"
+#include "opencv2/videoio.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
 
 #define PIN 18
 #define PI 3.14159265358979323846
@@ -22,14 +29,21 @@ vector<double> correct(vector<double> point, double heading,
 double wallDistance(double expected, double r1, double r2);
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
-//void sendDriveCommand(Serial8N1 *arduino, string command, vector<double> point,
-       //Vertex *end, double *heading, vector<double> *readings,
-       //vector<double> *deltas);
+void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
+       vector<bool> *debris_objects, vector<Vertex *> *corners,
+       Serial8N1 *arduino, string command, vector<double> *point,
+       Vertex *end, double *heading, vector<double> *readings,
+       vector<double> *deltas);
+void assignBaseColors(vector<Vertex *> *corners, Color color);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings, vector<double> *deltas);
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag);
 
 bool arduino_ready = true;
+
+// have we recorded the initial tape color yet
+bool know_home_base = false;
+Color carrying_debris = Invalid;
 
 int main(int argc, char **argv) {
     // Check number of arguments
@@ -53,6 +67,29 @@ int main(int argc, char **argv) {
     ifstream graph_file(argv[2], ifstream::in);
     vector<Vertex *> graph = makeGraph(&graph_file);
     graph_file.close();
+    
+    // Identify the four corners of the playing field
+    vector<Vertex *> corners(nullptr, 4);
+    for (vector<Vertex *>::iterator c = graph.begin();
+         c != graph.end(); c++)
+    {
+        if ((*c)->getX() == 7.25 && (*c)->getY() == 7.25) {
+            corners[0] = (*c);
+        }
+        else if ((*c)->getX() == 7.25 && (*c)->getY() == 89.75) {
+            corners[1] = (*c);
+        }
+        else if ((*c)->getX() == 89.75 && (*c)->getY() == 7.25) {
+            corners[2] = (*c);
+        }
+        else if ((*c)->getX() == 89.75 && (*c)->getY() == 89.75) {
+            corners[3] = (*c);
+        }
+    }
+    if (find(corners.begin(), corners.end(), nullptr) != corners.end()) {
+        cerr << "Unable to find all four corners." << endl;
+        return -1;
+    }
 
     // Create a set of waypoints
     ifstream waypoints_file(argv[3], ifstream::in);
@@ -71,11 +108,22 @@ int main(int argc, char **argv) {
     for (vector<Vertex *>::iterator w = waypoints.begin() + 1;
             w != waypoints.end(); w++)
     {
-        // TO-DO: Handle irregular operation
+        // Handle irregular operation
+        Vertex *target = (*w);
+        if (carrying_debris != Invalid) {
+            for (vector<Vertex *>::iterator c = corners.begin();
+                 c != corners.end(); c++)
+            {
+                if ((*c)->getColor() == carrying_debris) {
+                    target = (*c);
+                    break;
+                }
+            }
+        }
 
         // Use Dijikstra's algorithm to determine shortest path
         Dijikstra(graph, position);
-        deque<Vertex *> path = shortestPath(position, (*w));
+        deque<Vertex *> path = shortestPath(position, target);
         path.pop_front(); // First vertex is position, so ignore it
 
         // Follow the shortest path by executing commands
@@ -122,7 +170,15 @@ int main(int argc, char **argv) {
         readArduinoData(&arduino, &heading, &readings, &deltas);
 
         // Update the position
-        position = (*w);
+        position = target;
+        
+        // Handle irregular operation
+        if (carrying_debris != Invalid) {
+            arduino.write("4 0");
+            while(!arduino_ready);
+            carrying_debris = Invalid;
+            w--;
+        }
     }
 
 
@@ -259,6 +315,60 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
             + pow(end->getY() - point[1], 2));
 
     return to_string(cmd) + ' ' + to_string(distance);
+}
+
+void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
+        vector<bool> *debris_objects, vector<Vertex *> *corners,
+        Serial8N1 *arduino, string command, vector<double> *point,
+        Vertex *end, double *heading, vector<double> *readings,
+        vector<double> *deltas)
+{
+    arduino->write(command);
+    arduino_ready = false;
+    Color color;
+    while (!arduino_ready) {
+        color = (Color) cameraIteration(debris_objects, camera);
+        if (!know_home_base && color != Invalid) {
+            cout << "Assigning base colors." << endl;
+            assignBaseColors(corners, color);
+        }
+        // Search to see if debris was found
+        vector<bool>::iterator search = find(debris_objects.begin(),
+                debris_objects.end(), true);
+        if (search != debris_objects.end()) {
+            // Use index to identify debris color
+            int index = distance(debris_objects.begin(), search);
+            carrying_debris = (Color) (index / 2);
+            
+            // When debris is detected, drive straight for time and pick it up
+            //  with the belt
+            this_thread::sleep_for(chrono::milliseconds(500));
+            arduino.write("4 1");
+            while(!arduino_ready);
+            
+            // Update IMU heading, IR readings, and deltas
+            readArduinoData(arduino, heading, readings, deltas);
+            
+            // Correct the spatial point with arduino data
+            point = correct((*point), (*heading), (*readings), (*deltas));
+            
+            // Calculate and perform the new drive command
+            command = makeDriveCommand((*point), end, (*heading));
+            arduino->write(command);
+            while(!arduino_ready);
+            
+            // Send the new drive command recursively after collecting debris
+            //sendDriveCommand(camera, debris_objects, corners, arduino,
+                    //command, point, end, heading, readings, deltas);
+        }
+    }
+}
+
+void assignBaseColors(vector<Vertex *> *corners, Color color) {
+    (*corners)[0]->setColor(color);
+    (*corners)[1]->setColor((Color) ((((int) color) + 1) % 4));
+    (*corners)[2]->setColor((Color) ((((int) color) - 1) % 4));
+    (*corners)[3]->setColor((Color) ((((int) color) + 2) % 4));
 }
 
 void readArduinoData(Serial8N1 *arduino, double *heading,
