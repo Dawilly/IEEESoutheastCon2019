@@ -140,6 +140,8 @@ int main(int argc, char **argv) {
         for (; !path.empty(); path.pop_front()) {
             // Get the target vertex
             end = path.front();
+            cout << "Aiming for vertex (" << end->getX() << ", " << end->getY()
+                 << ")." << endl;
 
             // Update IMU heading, IR readings, and deltas
             readArduinoData(&arduino, &heading, &readings, &deltas);
@@ -195,13 +197,17 @@ vector<double> correct(vector<double> point, double heading,
         vector<double> readings, vector<double> deltas)
 {
     // Add the expected deltas to our previous point
+    cout << "Correcting spatial point."
     point[0] += deltas[0];
     point[1] += deltas[1];
+    cout << "Delta X: " << deltas[0] << endl;
+    cout << "Delta Y: " << deltas[1] << endl;
 
     // Direction is up
     if ((heading > 355.0 && heading < 360.0) ||
             (heading > 0.0 && heading < 5.0))
     {
+        cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[0], readings[1]))
             : (wallDistance(point[0], readings[2], readings[3]));
@@ -211,6 +217,7 @@ vector<double> correct(vector<double> point, double heading,
     }
     // Direction is down
     else if (heading > 175.0 && heading < 185.0) {
+        cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[2], readings[3]))
             : (wallDistance(point[0], readings[0], readings[1]));
@@ -220,6 +227,7 @@ vector<double> correct(vector<double> point, double heading,
     }
     // Direction is left
     else if (heading > 265.0 && heading < 275.0) {
+        cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[6], readings[7]))
             : (wallDistance(97.0 - point[0], readings[4], readings[5]));
@@ -229,6 +237,7 @@ vector<double> correct(vector<double> point, double heading,
     }
     // Direction is right
     else if (heading > 85.0 && heading < 95.0) {
+        cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[4], readings[5]))
             : (wallDistance(point[0], readings[6], readings[7]));
@@ -360,11 +369,12 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
     }
 }
 
+//corners goes: home, left, right, diagonal
 void assignBaseColors(vector<Vertex *> *corners, Color color) {
-    (*corners)[0]->setColor(color);
-    (*corners)[1]->setColor((Color) ((((int) color) + 1) % 4));
-    (*corners)[2]->setColor((Color) ((((int) color) - 1) % 4));
-    (*corners)[3]->setColor((Color) ((((int) color) + 2) % 4));
+    (*corners)[0]->setColor((Color) ((((int) color) + 1) % 4));
+    (*corners)[1]->setColor((Color) ((((int) color) + 2) % 4));
+    (*corners)[2]->setColor(color);
+    (*corners)[3]->setColor((Color) ((((int) color) - 1) % 4));
     
     cout << "Home base is color <" << (int)(*corners)[0]->getColor() << ">."
          << endl;
