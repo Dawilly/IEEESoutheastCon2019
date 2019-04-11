@@ -123,6 +123,8 @@ int main(int argc, char **argv) {
                 }
             }
         }
+        cout << "Target point is (" << target->getX() << ", "
+             << target->getY() << ")." << endl;
 
         // Use Dijikstra's algorithm to determine shortest path
         Dijikstra(graph, position);
@@ -371,6 +373,15 @@ void assignBaseColors(vector<Vertex *> *corners, Color color) {
     (*corners)[1]->setColor((Color) ((((int) color) + 1) % 4));
     (*corners)[2]->setColor((Color) ((((int) color) - 1) % 4));
     (*corners)[3]->setColor((Color) ((((int) color) + 2) % 4));
+    
+    cout << "Home base is color <" << (int)(*corners)[0]->getColor() << ">."
+         << endl;
+    cout << "Left adjacent base is color <" << (int)(*corners)[1]->getColor()
+         << ">." << endl;
+    cout << "Right adjacent base is color <" << (int)(*corners)[2]->getColor()
+         << ">." << endl;
+    cout << "Diagonal base is color <" << (int)(*corners)[3]->getColor()
+         << ">." << endl;
 }
 
 void readArduinoData(Serial8N1 *arduino, double *heading,
