@@ -12,6 +12,7 @@ $(EXE): $(OBJ)
 	g++ $(CPPFLAGS) main.cpp $(OBJ) -o $(EXE) $(INCFLAGS) $(GPIOFLAGS) $(RASPICAMLIBFLAGS) $(OPENCVLIBFLAGS)
 
 test: $(EXE)
+	rm -f ./Images/*
 	sudo ./$(EXE) /dev/ttyS0 graph.txt waypoints.txt
 
 %.o: %.cpp

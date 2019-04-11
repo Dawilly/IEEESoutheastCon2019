@@ -147,6 +147,7 @@ int main(int argc, char **argv) {
             point = correct(point, heading, readings, deltas);
             cout << "X coordinate is " << point[0] << endl;
             cout << "Y coordinate is " << point[1] << endl;
+            cout << "Heading is " << heading << endl;
 
             // Calculate and perform a turn command
             string command = makeTurnCommand(point, end, &heading);
@@ -160,6 +161,9 @@ int main(int argc, char **argv) {
 
             // Correct the spatial point with arduino data
             point = correct(point, heading, readings, deltas);
+            cout << "X coordinate is " << point[0] << endl;
+            cout << "Y coordinate is " << point[1] << endl;
+            cout << "Heading is " << heading << endl;
 
             // Calculate and perform a drive command
             command = makeDriveCommand(point, end, heading);
@@ -327,6 +331,7 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
         if (!know_home_base && color != Invalid) {
             cout << "Assigning base colors." << endl;
             assignBaseColors(corners, color);
+            know_home_base = true;
         }
         // Search to see if debris was found
         vector<bool>::iterator search = find(debris_objects->begin(),

@@ -105,7 +105,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                     putText(image, "green tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                     if(!know_home_base) {
-                        know_home_base = true;
                         return 1;
                     }
                 }
@@ -127,7 +126,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                             cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                             putText(image, "green tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                             if(!know_home_base) {
-                                know_home_base = true;
                                 return 1;
                             }
                         }
@@ -151,7 +149,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                     putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                     if(!know_home_base) {
-                        know_home_base = true;
                         return 2;
                     }
                 }
@@ -167,7 +164,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                         putText(image, "blue tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                         if(!know_home_base) {
-                            know_home_base = true;
                             return 2;
                         }
                     }
@@ -205,7 +201,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                     putText(image, "red tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                     if(!know_home_base) {
-                        know_home_base = true;
                         return 0;
                     }
                 }
@@ -227,7 +222,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                             cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                             putText(image, "red tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                             if(!know_home_base) {
-                                know_home_base = true;
                                 return 0;
                             }
                         }
@@ -251,7 +245,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                     putText(image, "yellow tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                     if(!know_home_base) {
-                        know_home_base = true;
                         return 3;
                     }
                 }
@@ -273,7 +266,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                             cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
                             putText(image, "yellow tape", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
                             if(!know_home_base) {
-                                know_home_base = true;
                                 return 3;
                             }
                         }
