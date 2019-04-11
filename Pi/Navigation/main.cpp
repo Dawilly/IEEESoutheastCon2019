@@ -178,9 +178,9 @@ int main(int argc, char **argv) {
         position = target;
         
         // Handle irregular operation
-        if (carrying_debris != Invalid) {
+        if (target != (*w)) {
             arduino.write("4 0");
-	    while (!arduino_ready);
+	        while (!arduino_ready);
             carrying_debris = Invalid;
             w--;
         }
@@ -269,18 +269,8 @@ string makeTurnCommand(vector<double> point, Vertex *end, double *heading) {
     double delta_x = end->getX() - point[0];
     double delta_y = end->getY() - point[1];
 
-    // Edge case to avoid dividing by zero
-    if (delta_x == 0.0) {
-        (*heading) = (delta_y > 0.0) ? 0.0 : 180.0;
-    }
-    // Direction is right
-    else if (delta_x > 0.0) {
-        (*heading) = 90.0 - radiansToDegrees(atan(delta_y / delta_x));
-    }
-    // Otherwise, direction is left
-    else {
-        (*heading) = 270.0 + radiansToDegrees(atan(delta_y / delta_x));
-    }
+    (*heading) = (-atan2(delta_y, delta_x) + PI / 2.0) * 180.0 / PI;
+    if ((*heading) < 0.0) (*heading) += 360.0;
 
     return "2 " + to_string((*heading));
 }
