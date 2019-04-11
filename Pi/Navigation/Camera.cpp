@@ -92,7 +92,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     cv::findContours(white, white_contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     
     if (green_contours.size() > 0) {
-        for (int i = 0; i < green_contours.size(); i++) {
+        for (int i = 0; i < (int) green_contours.size(); i++) {
             epsilon = 0.01*cv::arcLength(green_contours[i], true);
             cv::approxPolyDP(green_contours[i], approx, epsilon, true);
             cv::Moments m = cv::moments(green_contours[i],true);
@@ -126,7 +126,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     }
     
     if (blue_contours.size() > 0) {
-        for (int i = 0; i < blue_contours.size(); i++) {
+        for (int i = 0; i < (int) blue_contours.size(); i++) {
             epsilon = 0.01*cv::arcLength(blue_contours[i], true);
             cv::approxPolyDP(blue_contours[i], approx, epsilon, true);
             cv::Moments m = moments(blue_contours[i],true);
@@ -153,13 +153,12 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     }
     
     if (blue_ball_contours.size() > 0) {
-        for (int i = 0; i < blue_ball_contours.size(); i++) {
+        for (int i = 0; i < (int) blue_ball_contours.size(); i++) {
             epsilon = 0.01*cv::arcLength(blue_ball_contours[i], true);
             cv::approxPolyDP(blue_ball_contours[i], approx, epsilon, true);
             cv::Moments m = moments(blue_ball_contours[i],true);
             cv::Point p(m.m10/m.m00, m.m01/m.m00);
             double area = cv::contourArea(approx);
-            double perimeter = cv::arcLength(approx, true);
             if(area > 5000) {
                 drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
                 putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
@@ -169,7 +168,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     }
     
     if (red_contours.size() > 0) {
-        for (int i = 0; i < red_contours.size(); i++) {
+        for (int i = 0; i < (int) red_contours.size(); i++) {
             epsilon = 0.01*cv::arcLength(red_contours[i], true);
             cv::approxPolyDP(red_contours[i], approx, epsilon, true);
             cv::Moments m = cv::moments(red_contours[i],true);
@@ -203,7 +202,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     }
     
     if (yellow_contours.size() > 0) {
-        for (int i = 0; i < yellow_contours.size(); i++) {
+        for (int i = 0; i < (int) yellow_contours.size(); i++) {
             epsilon = 0.01*cv::arcLength(yellow_contours[i], true);
             cv::approxPolyDP(yellow_contours[i], approx, epsilon, true);
             cv::Moments m = cv::moments(yellow_contours[i],true);
@@ -237,7 +236,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     }
     
     if (white_contours.size() > 0) {
-        for (int i = 0; i < white_contours.size(); i++) {
+        for (int i = 0; i < (int) white_contours.size(); i++) {
             epsilon = 0.01*cv::arcLength(white_contours[i], true);
             cv::approxPolyDP(white_contours[i], approx, epsilon, true);
             cv::Moments m = cv::moments(white_contours[i],true);
