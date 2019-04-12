@@ -45,8 +45,9 @@ bool know_home_base = false;
 Color carrying_debris = Invalid;
 
 int main(int argc, char **argv) {
-    // Initialize the start time
+    // Initialize the start time and timeout flag
     time_t start_time = time(0);
+    bool timeout = false;
 
     // Check number of arguments
     if (argc < 4) {
@@ -119,7 +120,7 @@ int main(int argc, char **argv) {
 	cout << "Homebase identified? " << answer << endl;
         // Handle irregular operation
         Vertex *target = (*w);
-        if (carrying_debris != Invalid) {
+        if (!timeout && carrying_debris != Invalid) {
             for (vector<Vertex *>::iterator c = corners.begin();
                  c != corners.end(); c++)
             {
@@ -204,16 +205,29 @@ int main(int argc, char **argv) {
 
         // Determine if we are running out of time and need to go home
         time_t current_time = time(0);
-        if (current_time - start_time >= 160) {
+        if (!timeout && current_time - start_time >= 160) {
             // Set the waypoint itertor to our last waypoint for the next
             //  iteration
             w = waypoints.end() - 2;
+            
             // Update the start time to see how long it takes us to get home
             start_time = current_time;
+            
+            // Timeout occured
+            timeout = true;
         }
     }
-    cout << "Got home in " << time(0) - start_time << " seconds." << endl;
-
+    
+    // Inidicate the time of run in seconds
+    if (timeout) {
+        cout << "After timeout, we got home in " << time(0) - start_time
+             << " seconds." << endl;
+    }
+    else {
+        cout << "Total run was " << time(0) - start_time << " seconds."
+             << endl;
+    }
+    
     // Turn off camera, join GPIO thread, and finish
     turnCameraOff(Camera);
     gpioTerminate();

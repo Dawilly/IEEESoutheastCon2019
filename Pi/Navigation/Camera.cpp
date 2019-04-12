@@ -45,7 +45,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     int blue_lower[3] ={85,10,100};
     int blue_upper[3] ={103,255,255};
     
-    int red_lower[3] = {155,80,100};
+    int red_lower[3] = {155,50,100};
     int red_upper[3] = {180,255,255};
     
     int yellow_lower[3] = {25,130,125};
