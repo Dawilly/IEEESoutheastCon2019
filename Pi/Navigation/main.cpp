@@ -12,6 +12,7 @@
 #include <vector>
 #include <math.h>
 #include <pigpio.h>
+#include <time.h>
 #include "raspicam_cv.h"
 #include "opencv2/core.hpp"
 #include "opencv2/videoio.hpp"
@@ -46,6 +47,9 @@ bool know_home_base = false;
 Color carrying_debris = Invalid;
 
 int main(int argc, char **argv) {
+    // Initialize the start time
+    time_t start_time = time(0);
+
     // Check number of arguments
     if (argc < 4) {
         cerr << "Too few arguments!" << endl;
@@ -185,11 +189,27 @@ int main(int argc, char **argv) {
 
         // Handle irregular operation
         if (target != (*w)) {
-            arduino.write("4 0");
+            // Drive into the corner
+            arduino.write("1 4.0");
 	        arduino_ready = false;
             while (!arduino_ready);
+            
+            // Back out of the corner to deposit block
+            arduino.write("1 -4.0");
+	        arduino_ready = false;
+            while (!arduino_ready);
+
+            // Reset debris flag and decrement waypoint iterator
             carrying_debris = Invalid;
             w--;
+        }
+
+        // Determine if we are running out of time and need to go home
+        time_t current_time = time(0);
+        if ((int) (current_time - start_time) >= 160) {
+            // Set the waypoint itertor to our last waypoint for the next
+            //  iteration
+            w = waypoints.end() - 2;
         }
     }
 
@@ -365,9 +385,10 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
             // Use index to identify debris color
             int index = distance(debris_objects->begin(), search);
             carrying_debris = (Color) (index / 2);
-            cout << "Picking up debris of color <" << carrying_debris << ">."
+            cout << "Moving debris of color <" << carrying_debris << ">."
                  << endl;
 
+            /*
             // When debris is detected, drive straight for time and pick it up
             //  with the belt
             this_thread::sleep_for(chrono::seconds(2));
@@ -386,6 +407,7 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
             arduino->write(command);
             arduino_ready = false;
             while (!arduino_ready);
+            */
             
             // Send the new drive command recursively after collecting debris
             //sendDriveCommand(camera, debris_objects, corners, arduino,
