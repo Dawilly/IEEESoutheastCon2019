@@ -126,6 +126,10 @@ int main(int argc, char **argv) {
                     break;
                 }
             }
+            // We couldn't find the corresponding color, so go home
+            if (target == (*w)) {
+                target = corners[0];
+            }
         }
         cout << "Target point is (" << target->getX() << ", "
              << target->getY() << ")." << endl;
@@ -148,9 +152,6 @@ int main(int argc, char **argv) {
 
             // Correct the spatial spatial point with arduino data
             point = correct(point, heading, readings, deltas);
-            cout << "X coordinate is " << point[0] << endl;
-            cout << "Y coordinate is " << point[1] << endl;
-            cout << "Heading is " << heading << endl;
 
             // Calculate and perform a turn command
             string command = makeTurnCommand(point, end, &heading);
@@ -164,15 +165,19 @@ int main(int argc, char **argv) {
 
             // Correct the spatial point with arduino data
             point = correct(point, heading, readings, deltas);
-            cout << "X coordinate is " << point[0] << endl;
-            cout << "Y coordinate is " << point[1] << endl;
-            cout << "Heading is " << heading << endl;
 
             // Calculate and perform a drive command
             command = makeDriveCommand(point, end, heading);
             cout << "Command is " << command << "." << endl;
-            sendDriveCommand(&Camera, &debris_objects, &corners, &arduino,
-                    command, &point, end, &heading, &readings, &deltas); 
+            if (!know_home_base || carrying_debris == Invalid) {
+                sendDriveCommand(&Camera, &debris_objects, &corners, &arduino,
+                        command, &point, end, &heading, &readings, &deltas);
+            }
+            else {
+                arduino.write(command);
+                arduino_ready = false;
+                while (!arduino_ready);
+            }
             
             // Update position
             position = end;
@@ -181,7 +186,8 @@ int main(int argc, char **argv) {
         // Handle irregular operation
         if (target != (*w)) {
             arduino.write("4 0");
-	        while (!arduino_ready);
+	        arduino_ready = false;
+            while (!arduino_ready);
             carrying_debris = Invalid;
             w--;
         }
@@ -197,15 +203,15 @@ vector<double> correct(vector<double> point, double heading,
         vector<double> readings, vector<double> deltas)
 {
     // Add the expected deltas to our previous point
-    cout << "Correcting spatial point."
+    cout << "Correcting spatial point." << endl;
     point[0] += deltas[0];
     point[1] += deltas[1];
     cout << "Delta X: " << deltas[0] << endl;
     cout << "Delta Y: " << deltas[1] << endl;
 
     // Direction is up
-    if ((heading > 355.0 && heading < 360.0) ||
-            (heading > 0.0 && heading < 5.0))
+    if ((heading >= 355.0 && heading <= 360.0) ||
+            (heading >= 0.0 && heading <= 5.0))
     {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
@@ -216,7 +222,7 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[6], readings[7]));
     }
     // Direction is down
-    else if (heading > 175.0 && heading < 185.0) {
+    else if (heading >= 175.0 && heading <= 185.0) {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[2], readings[3]))
@@ -226,7 +232,7 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[4], readings[5]));
     }
     // Direction is left
-    else if (heading > 265.0 && heading < 275.0) {
+    else if (heading >= 265.0 && heading <= 275.0) {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[6], readings[7]))
@@ -236,7 +242,7 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[2], readings[3]));
     }
     // Direction is right
-    else if (heading > 85.0 && heading < 95.0) {
+    else if (heading >= 85.0 && heading <= 95.0) {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[4], readings[5]))
@@ -246,6 +252,9 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[0], readings[1]));
     }
     // Otherwise, just return the point with the added deltas
+    cout << "X coordinate is " << point[0] << endl;
+    cout << "Y coordinate is " << point[1] << endl;
+    cout << "Heading is " << heading << endl;
 
     return point;
 }
@@ -265,11 +274,17 @@ double wallDistance(double expected, double r1, double r2) {
         irDistance = r1;
     }
     else {
+        cout << "IRs are out of range, returning expected position."
+             << endl;
         irDistance = expected;
     }
 
     // Return the wall distance measured by the IRs if it is about what is
     //  expected. Otherwise, an unexpected object was seen.
+    if (abs(irDistance - expected) > 12.0) {
+        cout << "IR readings are inaccurate, returning expected position."
+             << endl;
+    }
     return (abs(irDistance - expected) > 12.0) ? expected : irDistance;
 }
 
@@ -291,21 +306,21 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
 
     int cmd;
     // Direction is up
-    if ((heading > 355.0 && heading < 360.0) ||
-            (heading > 0.0 && heading < 5.0))
+    if ((heading >= 355.0 && heading <= 360.0) ||
+            (heading >= 0.0 && heading <= 5.0))
     {
         cmd = (point[0] > 48.5) ? 5 : 6;
     }
     // Direction is down
-    else if (heading > 175.0 && heading < 185.0) {
+    else if (heading >= 175.0 && heading <= 185.0) {
         cmd = (point[0] > 48.5) ? 6 : 5;
     }
     // Direction is left
-    else if (heading > 265.0 && heading < 275.0) {
+    else if (heading >= 265.0 && heading <= 275.0) {
         cmd = (point[1] > 48.5) ? 5 : 6;
     }
     // Direction is right
-    else if (heading > 85.0 && heading < 95.0) {
+    else if (heading >= 85.0 && heading <= 95.0) {
         cmd = (point[1] > 48.5) ? 6 : 5;
     }
     // Otherwise, just drive straight
@@ -332,23 +347,30 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
     fill(debris_objects->begin(), debris_objects->end(), false);
     while (!arduino_ready) {
         color = (Color) cameraIteration((*debris_objects), (*camera));
+        
+        // If we now know our home base, then assign base colors
         if (!know_home_base && color != Invalid) {
             cout << "Assigning base colors." << endl;
             assignBaseColors(corners, color);
             know_home_base = true;
         }
-        // Search to see if debris was found
+
+        // Search to see if debris was found in front of us
         vector<bool>::iterator search = find(debris_objects->begin(),
                 debris_objects->end(), true);
-        if (search != debris_objects->end()) {
+        
+        // If there is debris in front of us, and we aren't holding some, pick
+        //  it up
+        if (search != debris_objects->end() && carrying_debris == Invalid) {
             // Use index to identify debris color
             int index = distance(debris_objects->begin(), search);
             carrying_debris = (Color) (index / 2);
-            cout << "index" << index << "\tcarrying_debris: " << ((int)(carrying_debris)) << endl;
+            
             // When debris is detected, drive straight for time and pick it up
             //  with the belt
             this_thread::sleep_for(chrono::milliseconds(500));
             arduino->write("4 1");
+            arduino_ready = false;
             while (!arduino_ready);
             
             // Update IMU heading, IR readings, and deltas
@@ -360,6 +382,7 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
             // Calculate and perform the new drive command
             command = makeDriveCommand((*point), end, (*heading));
             arduino->write(command);
+            arduino_ready = false;
             while (!arduino_ready);
             
             // Send the new drive command recursively after collecting debris
