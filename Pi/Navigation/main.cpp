@@ -204,12 +204,15 @@ int main(int argc, char **argv) {
 
         // Determine if we are running out of time and need to go home
         time_t current_time = time(0);
-        if ((int) (current_time - start_time) >= 160) {
+        if (current_time - start_time >= 160) {
             // Set the waypoint itertor to our last waypoint for the next
             //  iteration
             w = waypoints.end() - 2;
+            // Update the start time to see how long it takes us to get home
+            start_time = current_time;
         }
     }
+    cout << "Got home in " << time(0) - start_time << " seconds." << endl;
 
     // Turn off camera, join GPIO thread, and finish
     turnCameraOff(Camera);
