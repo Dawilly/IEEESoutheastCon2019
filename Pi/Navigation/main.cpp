@@ -76,16 +76,16 @@ int main(int argc, char **argv) {
     // Identify the four corners of the playing field
     vector<Vertex *> corners(4, nullptr);
     for (vector<Vertex *>::iterator c = graph.begin(); c != graph.end(); c++) {
-        if ((*c)->getX() == 7.25 && (*c)->getY() == 7.25) {
+        if ((*c)->getX() == 13.75 && (*c)->getY() == 13.75) {
             corners[0] = (*c);
         }
-        else if ((*c)->getX() == 7.25 && (*c)->getY() == 89.75) {
+        else if ((*c)->getX() == 13.75 && (*c)->getY() == 83.25) {
             corners[1] = (*c);
         }
-        else if ((*c)->getX() == 89.75 && (*c)->getY() == 7.25) {
+        else if ((*c)->getX() == 83.25 && (*c)->getY() == 13.75) {
             corners[2] = (*c);
         }
-        else if ((*c)->getX() == 89.75 && (*c)->getY() == 89.75) {
+        else if ((*c)->getX() == 83.25 && (*c)->getY() == 83.25) {
             corners[3] = (*c);
         }
     }
