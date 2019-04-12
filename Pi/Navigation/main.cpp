@@ -236,7 +236,7 @@ vector<double> correct(vector<double> point, double heading,
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[6], readings[7]))
-            : (wallDistance(97.0 - point[0], readings[4], readings[5]));
+            : (wallDistance(point[0], readings[4], readings[5]));
         point[1] = (point[1] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[1], readings[0], readings[1]))
             : (wallDistance(point[1], readings[2], readings[3]));
@@ -365,10 +365,12 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
             // Use index to identify debris color
             int index = distance(debris_objects->begin(), search);
             carrying_debris = (Color) (index / 2);
-            
+            cout << "Picking up debris of color <" << carrying_debris << ">."
+                 << endl;
+
             // When debris is detected, drive straight for time and pick it up
             //  with the belt
-            this_thread::sleep_for(chrono::milliseconds(500));
+            this_thread::sleep_for(chrono::seconds(2));
             arduino->write("4 1");
             arduino_ready = false;
             while (!arduino_ready);

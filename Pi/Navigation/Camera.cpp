@@ -48,7 +48,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     int red_lower[3] = {155,80,100};
     int red_upper[3] = {180,255,255};
     
-    int yellow_lower[3] = {25,75,125};
+    int yellow_lower[3] = {25,130,125};
     int yellow_upper[3] = {35,255,255};
     
     int white_sensitivity = 125;
@@ -112,7 +112,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     if(approx.size() > 10) {
                         cout << "{Green Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
                         putText(image, "green ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin(), true);
+                        debris_objects[2] = true;
                     }
                     else {
                         cv::Rect rect = boundingRect(approx);
@@ -120,7 +120,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         if((float)((rect.width)/(rect.height)) == 1){
                             cout << "{Green Block} " << " area: " << area << " perimeter: " << perimeter << endl;
                             putText(image, "green block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                            debris_objects.insert(debris_objects.begin() + 1, true);
+                            debris_objects[3] = true;
                         }
                         else {
                             cout << "{Green Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
@@ -158,7 +158,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     if((float)((rect.width)/(rect.height)) == 1){
                         cout << "{Blue Block} " << " area: " << area << " perimeter: " << perimeter << endl;
                         putText(image, "blue block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin() + 3, true);
+                        debris_objects[5] = true;
                     }
                     else {
                         cout << "{Blue Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
@@ -182,7 +182,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
             if(area > 5000) {
                 drawContours(image, blue_ball_contours, -1, cv::Scalar(0,0,0), 2);
                 putText(image, "blue ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(255,255,255), 2);
-                debris_objects.insert(debris_objects.begin() + 2, true);
+                debris_objects[4] = true;
             }
         }
     }
@@ -208,7 +208,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     if(approx.size() > 10) {
                         cout << "{Red Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
                         putText(image, "red ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin() + 4, true);
+                        debris_objects[0] = true;
                     }
                     else {
                         cv::Rect rect = boundingRect(approx);
@@ -216,7 +216,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         if((float)((rect.width)/(rect.height)) == 1){
                             cout << "{Red Block} " << " area: " << area << " perimeter: " << perimeter << endl;
                             putText(image, "red block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                            debris_objects.insert(debris_objects.begin() + 5, true);
+                            debris_objects[1] = true;
                         }
                         else {
                             cout << "{Red Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
@@ -252,7 +252,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                     if(approx.size() > 10) {
                         cout << "{Yellow Ball} " << " area: " << area << " perimeter: " << perimeter << endl;
                         putText(image, "yellow ball", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                        debris_objects.insert(debris_objects.begin() + 6, true);
+                        debris_objects[6] = true;
                     }
                     else {
                         cv::Rect rect = boundingRect(approx);
@@ -260,7 +260,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
                         if((float)((rect.width)/(rect.height)) == 1){
                             cout << "{Yellow Block} " << " area: " << area << " perimeter: " << perimeter << endl;
                             putText(image, "yellow block", p, cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0,0,0), 2);
-                            debris_objects.insert(debris_objects.begin() + 7, true);
+                            debris_objects[7] = true;
                         }
                         else {
                             cout << "{Yellow Tape} " << " area: " << area << " perimeter: " << perimeter << endl;
