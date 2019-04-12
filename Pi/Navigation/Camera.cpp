@@ -304,6 +304,7 @@ void cameraSetup(raspicam::RaspiCam_Cv &Camera) {
     Camera.set ( cv::CAP_PROP_SATURATION, 50.0 );
     Camera.set ( cv::CAP_PROP_GAIN, 50.0 );
     Camera.set ( cv::CAP_PROP_FPS, 32.0 );
+    //Camera.setAWB(2);
 }
 
 void processImage(cv::Mat &input, cv::Mat &output, int lower[3], int upper[3]) {

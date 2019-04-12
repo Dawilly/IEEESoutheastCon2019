@@ -417,6 +417,7 @@ void readArduinoData(Serial8N1 *arduino, double *heading,
     // Send command for arduino to send necessary data
     arduino->write("7 0.0");
     arduino_ready = false;
+    cout << "Waiting on data . . ." << endl;
     while (!arduino_ready);
 
     // Read received data and update IMU heading, IR readings, and delta values
