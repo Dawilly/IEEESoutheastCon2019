@@ -31,10 +31,8 @@ double wallDistance(double expected, double r1, double r2);
 string makeTurnCommand(vector<double> point, Vertex *end, double *heading);
 string makeDriveCommand(vector<double> point, Vertex *end, double heading);
 void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
-       vector<bool> *debris_objects, vector<Vertex *> *corners,
-       Serial8N1 *arduino, string command, vector<double> *point,
-       Vertex *end, double *heading, vector<double> *readings,
-       vector<double> *deltas);
+        vector<bool> *debris_objects, vector<Vertex *> *corners,
+        Serial8N1 *arduino, string command);
 void assignBaseColors(vector<Vertex *> *corners, Color color);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings, vector<double> *deltas);
@@ -175,7 +173,7 @@ int main(int argc, char **argv) {
             cout << "Command is " << command << "." << endl;
             if (!know_home_base || carrying_debris == Invalid) {
                 sendDriveCommand(&Camera, &debris_objects, &corners, &arduino,
-                        command, &point, end, &heading, &readings, &deltas);
+                        command);
             }
             else {
                 arduino.write(command);
@@ -357,9 +355,7 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
 
 void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
         vector<bool> *debris_objects, vector<Vertex *> *corners,
-        Serial8N1 *arduino, string command, vector<double> *point,
-        Vertex *end, double *heading, vector<double> *readings,
-        vector<double> *deltas)
+        Serial8N1 *arduino, string command)
 {
     arduino->write(command);
     arduino_ready = false;
