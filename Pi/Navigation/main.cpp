@@ -20,6 +20,7 @@
 #include "opencv2/imgproc.hpp"
 
 #define PIN 18
+#define SWITCH 24
 #define PI 3.14159265358979323846
 #define radiansToDegrees(theta) (theta * 180.0 / PI)
 
@@ -37,6 +38,7 @@ void assignBaseColors(vector<Vertex *> *corners, Color color);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings, vector<double> *deltas);
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag);
+void handle_switch(int gpio, int level, uint32_t tick, void *flag);
 
 bool arduino_ready = true;
 
@@ -61,9 +63,20 @@ int main(int argc, char **argv) {
     gpioSetMode(PIN, PI_INPUT);
     gpioSetPullUpDown(PIN, PI_PUD_UP);
 
+    // Set up GPIO 24 as a start-up switch
+    gpioSetMode(SWITCH, PI_INPUT);
+    gpioSetPullUpDown(SWITCH, PI_PUD_UP);
+    
     // Pass function to handle interrupt at rising and falling edges
     gpioSetISRFuncEx(PIN, EITHER_EDGE, 0, handle_interrupt, &arduino_ready);
 
+    // Pass function to handle start-up switch
+    bool running = false;
+    gpioSetISRFuncEx(SWITCH, EITHER_EDGE, 0, handle_switch, &running);
+    
+    // Wait until switch is turned on
+    while (!running);
+    
     // Open serial port and use IRs to be parallel with left wall
     Serial8N1 arduino(argv[1], 9600);
 
@@ -245,8 +258,8 @@ vector<double> correct(vector<double> point, double heading,
     cout << "Delta Y: " << deltas[1] << endl;
 
     // Direction is up
-    if ((heading >= 355.0 && heading <= 360.0) ||
-            (heading >= 0.0 && heading <= 5.0))
+    if ((heading >= 350.0 && heading <= 360.0) ||
+            (heading >= 0.0 && heading <= 10.0))
     {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
@@ -257,7 +270,7 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[6], readings[7]));
     }
     // Direction is down
-    else if (heading >= 175.0 && heading <= 185.0) {
+    else if (heading >= 170.0 && heading <= 190.0) {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[2], readings[3]))
@@ -267,7 +280,7 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[4], readings[5]));
     }
     // Direction is left
-    else if (heading >= 265.0 && heading <= 275.0) {
+    else if (heading >= 260.0 && heading <= 280.0) {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[6], readings[7]))
@@ -277,7 +290,7 @@ vector<double> correct(vector<double> point, double heading,
             : (wallDistance(point[1], readings[2], readings[3]));
     }
     // Direction is right
-    else if (heading >= 85.0 && heading <= 95.0) {
+    else if (heading >= 80.0 && heading <= 100.0) {
         cout << "Using IR sensors . . . " << endl;
         point[0] = (point[0] > 48.5) ?
             (97.0 - wallDistance(97.0 - point[0], readings[4], readings[5]))
@@ -341,21 +354,21 @@ string makeDriveCommand(vector<double> point, Vertex *end, double heading) {
 
     int cmd;
     // Direction is up
-    if ((heading >= 355.0 && heading <= 360.0) ||
-            (heading >= 0.0 && heading <= 5.0))
+    if ((heading >= 350.0 && heading <= 360.0) ||
+            (heading >= 0.0 && heading <= 10.0))
     {
         cmd = (point[0] > 48.5) ? 5 : 6;
     }
     // Direction is down
-    else if (heading >= 175.0 && heading <= 185.0) {
+    else if (heading >= 170.0 && heading <= 190.0) {
         cmd = (point[0] > 48.5) ? 6 : 5;
     }
     // Direction is left
-    else if (heading >= 265.0 && heading <= 275.0) {
+    else if (heading >= 260.0 && heading <= 280.0) {
         cmd = (point[1] > 48.5) ? 5 : 6;
     }
     // Direction is right
-    else if (heading >= 85.0 && heading <= 95.0) {
+    else if (heading >= 80.0 && heading <= 100.0) {
         cmd = (point[1] > 48.5) ? 6 : 5;
     }
     // Otherwise, just drive straight
@@ -477,5 +490,22 @@ void handle_interrupt(int gpio, int level, uint32_t tick, void *flag) {
         cout << "GPIO " << gpio
              << ": Arduino has begun processing a command at time " << tick
              << "." << endl;
+    }
+}
+
+// Function to handle change in level of GPIO 24
+void handle_switch(int gpio, int level, uint32_t tick, void *flag) {
+    // At interrupt rising edge, begin navigation algorithm
+    if (level == 0) {
+        cout << "GPIO " << gpio << ": Begin navigating at time " << tick
+             << "." << endl;
+        (*(bool *)flag) = true;
+    }
+    // At falling edge, arduino has begun processing a command
+    else {
+        cout << "GPIO " << gpio << ": Halting navigation at time " << tick
+             << "." << endl;
+        // Probably overkill, but ya boi lazy
+        system("sudo shutdown -h now");
     }
 }
