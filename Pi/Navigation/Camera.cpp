@@ -73,7 +73,17 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     Camera.grab();
     Camera.retrieve(image);
     camera_count++;
-    
+   
+    int startX= 25;
+    int startY = 0;
+    int width = 565;
+    int height = 300;
+
+    //TODO: MAKE CROP BETTER
+    //cv::Rect myROI(startX, startY, width, height);
+    //crop the image to only see what is directly in front of bot
+    //image = image(myROI);
+
     cv::GaussianBlur(image, blurred, cv::Size(11,11), 0);
     cv::cvtColor(blurred, hsv, cv::COLOR_BGR2HSV);
     
@@ -292,7 +302,7 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
             }
         }
     }
-    cv::imwrite("Images/image" + to_string(camera_count) + ".jpg", image);
+    cv::imwrite("Images2/image" + to_string(camera_count) + ".jpg", image);
     return 4;
 }
 

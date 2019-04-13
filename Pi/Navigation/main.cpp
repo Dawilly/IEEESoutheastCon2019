@@ -20,7 +20,6 @@
 #include "opencv2/imgproc.hpp"
 
 #define PIN 18
-#define SWITCH 24
 #define PI 3.14159265358979323846
 #define radiansToDegrees(theta) (theta * 180.0 / PI)
 
@@ -38,7 +37,6 @@ void assignBaseColors(vector<Vertex *> *corners, Color color);
 void readArduinoData(Serial8N1 *arduino, double *heading,
         vector<double> *readings, vector<double> *deltas);
 void handle_interrupt(int gpio, int level, uint32_t tick, void *flag);
-void handle_switch(int gpio, int level, uint32_t tick, void *flag);
 
 bool arduino_ready = true;
 
@@ -50,7 +48,6 @@ int main(int argc, char **argv) {
     // Initialize the start time and timeout flag
     time_t start_time = time(0);
     bool timeout = false;
-
     // Check number of arguments
     if (argc < 4) {
         cerr << "Too few arguments!" << endl;
@@ -63,20 +60,9 @@ int main(int argc, char **argv) {
     gpioSetMode(PIN, PI_INPUT);
     gpioSetPullUpDown(PIN, PI_PUD_UP);
 
-    // Set up GPIO 24 as a start-up switch
-    gpioSetMode(SWITCH, PI_INPUT);
-    gpioSetPullUpDown(SWITCH, PI_PUD_UP);
-    
     // Pass function to handle interrupt at rising and falling edges
     gpioSetISRFuncEx(PIN, EITHER_EDGE, 0, handle_interrupt, &arduino_ready);
 
-    // Pass function to handle start-up switch
-    bool running = false;
-    gpioSetISRFuncEx(SWITCH, EITHER_EDGE, 0, handle_switch, &running);
-    
-    // Wait until switch is turned on
-    while (!running);
-    
     // Open serial port and use IRs to be parallel with left wall
     Serial8N1 arduino(argv[1], 9600);
 
@@ -218,7 +204,7 @@ int main(int argc, char **argv) {
 
         // Determine if we are running out of time and need to go home
         time_t current_time = time(0);
-        if (!timeout && current_time - start_time >= 160) {
+        if (!timeout && current_time - start_time >= 140) {
             // Set the waypoint itertor to our last waypoint for the next
             //  iteration
             w = waypoints.end() - 2;
@@ -241,6 +227,9 @@ int main(int argc, char **argv) {
              << endl;
     }
     
+    // Raise the damn flag
+    arduino.write("8 0.0");
+
     // Turn off camera, join GPIO thread, and finish
     turnCameraOff(Camera);
     gpioTerminate();
@@ -490,22 +479,5 @@ void handle_interrupt(int gpio, int level, uint32_t tick, void *flag) {
         cout << "GPIO " << gpio
              << ": Arduino has begun processing a command at time " << tick
              << "." << endl;
-    }
-}
-
-// Function to handle change in level of GPIO 24
-void handle_switch(int gpio, int level, uint32_t tick, void *flag) {
-    // At interrupt rising edge, begin navigation algorithm
-    if (level == 0) {
-        cout << "GPIO " << gpio << ": Begin navigating at time " << tick
-             << "." << endl;
-        (*(bool *)flag) = true;
-    }
-    // At falling edge, arduino has begun processing a command
-    else {
-        cout << "GPIO " << gpio << ": Halting navigation at time " << tick
-             << "." << endl;
-        // Probably overkill, but ya boi lazy
-        system("sudo shutdown -h now");
     }
 }
