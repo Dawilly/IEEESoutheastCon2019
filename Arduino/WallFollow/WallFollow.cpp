@@ -36,7 +36,7 @@ int WallFollow::Act() {
 		if (sensors[selectedSensor_0]->RangeStatus() == 4) {
 			//Out of range on sensor 0
 			sprintf(buf, "Sensor %d was out of range, exempting turn.\n", selectedSensor_0);
-			results = -1
+			results = -1;
 		} else if (sensors[selectedSensor_1]->RangeStatus() == 4) {
 			//Out of range on sensor 1
 			sprintf(buf, "Sensor %d was out of range, exempting turn.\n", selectedSensor_1);
