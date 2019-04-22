@@ -13,8 +13,8 @@ typedef enum belt_position {
 class Belt {
     // Encoder positions for each level. The waiting level is always zero.
     #define POSITION_WAIT 0
-    #define POSITION_SORT1 7600
-    #define POSITION_SORT2 9000
+    #define POSITION_SORT1 4900
+    #define POSITION_SORT2 4900
 
     public:
         Belt(uint8_t MPWMpin, uint8_t FPIN, uint8_t RPIN, uint8_t pin1,
