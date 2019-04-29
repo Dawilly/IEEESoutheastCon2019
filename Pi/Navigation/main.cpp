@@ -45,14 +45,15 @@ bool know_home_base = false;
 Color carrying_debris = Invalid;
 
 int main(int argc, char **argv) {
-    // Initialize the start time and timeout flag
-    time_t start_time = time(0);
-    bool timeout = false;
     // Check number of arguments
     if (argc < 4) {
         cerr << "Too few arguments!" << endl;
         return -1;
     }
+    
+    // Initialize the start time and timeout flag
+    time_t start_time = time(0);
+    bool timeout = false;
     
 
     // Set up GPIO 18 as "interrupt" to indicate arduino is ready for a message
@@ -115,8 +116,8 @@ int main(int argc, char **argv) {
     for (vector<Vertex *>::iterator w = waypoints.begin() + 1;
             w != waypoints.end(); w++)
     {
-    string answer = (know_home_base) ? "Yes!" : "No.";
-	cout << "Homebase identified? " << answer << endl;
+        string answer = (know_home_base) ? "Yes!" : "No.";
+	    cout << "Homebase identified? " << answer << endl;
         // Handle irregular operation
         Vertex *target = (*w);
         if (!timeout && carrying_debris != Invalid) {
@@ -204,13 +205,13 @@ int main(int argc, char **argv) {
 
         // Determine if we are running out of time and need to go home
         time_t current_time = time(0);
-        if (!timeout && current_time - start_time >= 140) {
+        if (!timeout && difftime(current_time, start_time) >= 140) {
             // Set the waypoint itertor to our last waypoint for the next
             //  iteration
             w = waypoints.end() - 2;
             
             // Update the start time to see how long it takes us to get home
-            start_time = current_time;
+            start_time = time(0);
             
             // Timeout occured
             timeout = true;
@@ -218,13 +219,14 @@ int main(int argc, char **argv) {
     }
     
     // Inidicate the time of run in seconds
+    time_t current_time = time(0);
     if (timeout) {
-        cout << "After timeout, we got home in " << time(0) - start_time
-             << " seconds." << endl;
+        cout << "After timeout, we got home in "
+             << difftime(current_time, start_time) << " seconds." << endl;
     }
     else {
-        cout << "Total run was " << time(0) - start_time << " seconds."
-             << endl;
+        cout << "Total run was " <<  difftime(current_time, start_time)
+             << " seconds." << endl;
     }
     
     // Raise the damn flag
@@ -402,31 +404,6 @@ void sendDriveCommand(raspicam::RaspiCam_Cv *camera,
             carrying_debris = (Color) (index / 2);
             cout << "Moving debris of color <" << carrying_debris << ">."
                  << endl;
-
-            /*
-            // When debris is detected, drive straight for time and pick it up
-            //  with the belt
-            this_thread::sleep_for(chrono::seconds(2));
-            arduino->write("4 1");
-            arduino_ready = false;
-            while (!arduino_ready);
-            
-            // Update IMU heading, IR readings, and deltas
-            readArduinoData(arduino, heading, readings, deltas);
-            
-            // Correct the spatial point with arduino data
-            (*point) = correct((*point), (*heading), (*readings), (*deltas));
-            
-            // Calculate and perform the new drive command
-            command = makeDriveCommand((*point), end, (*heading));
-            arduino->write(command);
-            arduino_ready = false;
-            while (!arduino_ready);
-            */
-            
-            // Send the new drive command recursively after collecting debris
-            //sendDriveCommand(camera, debris_objects, corners, arduino,
-                    //command, point, end, heading, readings, deltas);
         }
     }
 }
