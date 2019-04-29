@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <deque>
 #include <time.h>
 #include <vector>
