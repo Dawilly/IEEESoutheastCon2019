@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
         Vertex *target = (*w);
         if (!timeout) {
             string response;
-            cout << "Go to a different corner (Y/n)? ";
+            cout << "Go to a colored corner (Y/n)? ";
             cin >> response;
             if (response == "y" || response == "Y") {
                 int index;
