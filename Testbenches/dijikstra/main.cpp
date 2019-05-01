@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
                 target = corners[index];
             }
         }
-        
+
         // Use Dijikstra's algorithm to determin the shortest path
         Dijikstra(graph, position);
         deque<Vertex *> path = shortestPath(position, target);
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
              << difftime(current_time, start_time) << " seconds." << endl;
     }
     else {
-        cout << "Total run was " <<  difftime(current_time, start_time)
+        cout << "Total run was " << difftime(current_time, start_time)
              << " seconds." << endl;
     }
 
