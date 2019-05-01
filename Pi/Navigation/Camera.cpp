@@ -74,11 +74,6 @@ int cameraIteration(vector<bool> &debris_objects, raspicam::RaspiCam_Cv &Camera)
     Camera.retrieve(image);
     camera_count++;
    
-    int startX= 25;
-    int startY = 0;
-    int width = 565;
-    int height = 300;
-
     //TODO: MAKE CROP BETTER
     //cv::Rect myROI(startX, startY, width, height);
     //crop the image to only see what is directly in front of bot
