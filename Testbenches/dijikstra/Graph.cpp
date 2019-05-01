@@ -34,7 +34,7 @@ static void makeEdge(std::ifstream *file, std::vector<Vertex *> *vertices,
     file->ignore(STREAM_SIZE, ':');
     Vertex *b = makeVertex(file, vertices);
 
-    Edge *search = NULL;
+    Edge *search = nullptr;
     for (std::vector<Edge *>::iterator i = edges->begin(); i != edges->end();
             i++)
     {
@@ -44,7 +44,7 @@ static void makeEdge(std::ifstream *file, std::vector<Vertex *> *vertices,
             break;
         }
     }
-    if (search != NULL) return;
+    if (search != nullptr) return;
     edges->push_back(new Edge(a, b));
     return;
 }
@@ -61,7 +61,7 @@ Vertex *makeVertex(std::ifstream *file, std::vector<Vertex *> *vertices)
     (*file) >> y;
     file->ignore(STREAM_SIZE, ')');
 
-    Vertex *search = NULL;
+    Vertex *search = nullptr;
     for (std::vector<Vertex *>::iterator i = vertices->begin();
             i != vertices->end(); i++)
     {
@@ -71,7 +71,7 @@ Vertex *makeVertex(std::ifstream *file, std::vector<Vertex *> *vertices)
             break;
         }
     }
-    if (search != NULL) return search;
+    if (search != nullptr) return search;
     Vertex *v = new Vertex(x, y);
     vertices->push_back(v);
     return v;

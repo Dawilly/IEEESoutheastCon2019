@@ -22,7 +22,7 @@ void Dijikstra(std::vector<Vertex *> Q, Vertex *source) {
 
     for (std::vector<Vertex *>::iterator i = Q.begin(); i != Q.end(); i++) {
         if ((*i) != source) (*i)->setDistance(-1.0);
-        (*i)->setPrevious(NULL);
+        (*i)->setPrevious(nullptr);
     }
     
     make_heap(Q.begin(), Q.end(), compareVertex());
@@ -48,8 +48,8 @@ void Dijikstra(std::vector<Vertex *> Q, Vertex *source) {
 std::deque<Vertex *> shortestPath(Vertex *source, Vertex *target) {
     std::deque<Vertex *> path;
     Vertex *u = target;
-    if (u->getPrevious() != NULL || u == source) {
-        while (u != NULL) {
+    if (u->getPrevious() != nullptr || u == source) {
+        while (u != nullptr) {
             path.push_front(u);
             u = u->getPrevious();
         }
