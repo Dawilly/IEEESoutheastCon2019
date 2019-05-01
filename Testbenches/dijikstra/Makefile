@@ -5,7 +5,7 @@ EXE = dijikstra
 all: $(EXE)
 
 $(EXE): $(OBJ)
-	g++ $(OBJ) main.cpp -o $(EXE)
+	g++ $(CPPFLAGS) main.cpp $(OBJ) -o $(EXE)
 
 test: $(EXE)
 	./$(EXE) graph.txt waypoints.txt
