@@ -52,8 +52,6 @@ void setup()
     Serial.println("\nTCAScanner ready!");
     
     for (uint8_t t=0; t<8; t++) {
-      Serial.print("t = ");
-      Serial.print(t);
       tcaselect(t);
       Serial.print("TCA Port #"); Serial.println(t);
 

@@ -1,18 +1,22 @@
-CPPFLAGS = -Wall -Wextra
+CPPFLAGS = -Wall -Wextra -Wno-psabi
+INCFLAGS = -I/usr/local/include/opencv4/ -I/usr/local/include/opencv4/opencv2 -I/usr/local/include/raspicam
 GPIOFLAGS = -pthread -lpigpio
-OBJ = Dijikstra.o Graph.o Edge.o Vertex.o Serial8N1.o
-EXE = navigation
+RASPICAMLIBFLAGS = -L/opt/vc/lib -lraspicam -lraspicam_cv -lmmal -lmmal_core -lmmal_util
+OPENCVLIBFLAGS = -lopencv_imgcodecs -lopencv_core -lopencv_highgui -lopencv_videoio -lopencv_imgproc
+OBJ = Dijikstra.o Graph.o Edge.o Vertex.o Serial8N1.o Camera.o
+EXE = navigation_cam_test
 
 all: $(EXE)
 
 $(EXE): $(OBJ)
-	g++ $(CPPFLAGS) $(GPIOFLAGS) main.cpp $(OBJ) -o $(EXE)
+	g++ $(CPPFLAGS) main.cpp $(OBJ) -o $(EXE) $(INCFLAGS) $(GPIOFLAGS) $(RASPICAMLIBFLAGS) $(OPENCVLIBFLAGS)
 
 test: $(EXE)
+	rm -f ./Images/*
 	sudo ./$(EXE) /dev/ttyS0 graph.txt waypoints.txt
 
-%o: %.cpp
-	g++ $(CPPFLAGS) -c $< -o $@
+%.o: %.cpp
+	g++ -c $< -o $@  $(CPPFLAGS) $(INCFLAGS)
 
 clean:
 	rm -f $(EXE) *.o
